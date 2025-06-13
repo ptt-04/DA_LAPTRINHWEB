@@ -5,6 +5,7 @@ using NguyenTienPhat_2280620311.Extensions;
 using NguyenTienPhat_2280620311.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using NguyenTienPhat_2280620311.Services;
 
 namespace NguyenTienPhat_2280620311.Controllers
 {
@@ -14,31 +15,46 @@ namespace NguyenTienPhat_2280620311.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ILogger<PaymentController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ICartService _cartService;
 
         public PaymentController(
             IVnPayService vnPayService, 
             ApplicationDbContext context,
             ILogger<PaymentController> logger,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ICartService cartService)
         {
             _vnPayService = vnPayService;
             _context = context;
             _logger = logger;
             _userManager = userManager;
+            _cartService = cartService;
         }
 
         [HttpPost]
-        public IActionResult CreatePaymentUrlVnpay(Order order)
+        public async Task<IActionResult> CreatePaymentUrlVnpay(Order order)
         {
             try
             {
-                var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart");
-                if (cart == null || !cart.Items.Any())
+                var userId = _userManager.GetUserId(User);
+                var cartItems = await _cartService.GetCartItemsAsync(userId);
+                if (cartItems == null || !cartItems.Any())
                 {
                     return RedirectToAction("Index", "ShoppingCart");
                 }
 
-                var totalAmount = cart.Items.Sum(i => i.Price * i.Quantity);
+                var totalAmount = cartItems.Sum(i => i.Product.Price * i.Quantity);
+
+                // Gán thông tin sản phẩm vào order
+                order.UserId = userId;
+                order.OrderDate = DateTime.UtcNow;
+                order.TotalPrice = totalAmount;
+                order.OrderDetails = cartItems.Select(i => new OrderDetail
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    Price = i.Product.Price
+                }).ToList();
 
                 // Tạo thông tin thanh toán cho VNPay
                 var paymentInfo = new PaymentInformationModel
@@ -84,8 +100,16 @@ namespace NguyenTienPhat_2280620311.Controllers
                 {
                     // Lấy thông tin đơn hàng từ Session
                     var order = HttpContext.Session.GetObjectFromJson<Order>("PendingOrder");
-                    var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart");
-                    var totalAmount = cart?.Items.Sum(i => i.Price * i.Quantity) ?? 0;
+                    var user = await _userManager.GetUserAsync(User);
+                    
+                    if (user == null)
+                    {
+                        throw new Exception("Không tìm thấy thông tin người dùng");
+                    }
+
+                    // Lấy giỏ hàng từ database
+                    var cartItems = await _cartService.GetCartItemsAsync(user.Id);
+                    var totalAmount = cartItems.Sum(i => i.Product.Price * i.Quantity);
 
                     if (order == null)
                     {
@@ -101,13 +125,6 @@ namespace NguyenTienPhat_2280620311.Controllers
 
                     try
                     {
-                        // Lấy UserId của người dùng hiện tại
-                        var user = await _userManager.GetUserAsync(User);
-                        if (user == null)
-                        {
-                            throw new Exception("Không tìm thấy thông tin người dùng");
-                        }
-
                         // Cập nhật thông tin đơn hàng
                         order.UserId = user.Id;
                         order.OrderDate = DateTime.UtcNow;
@@ -123,11 +140,12 @@ namespace NguyenTienPhat_2280620311.Controllers
                             order.Notes = "Không có ghi chú";
                         }
 
-                        order.OrderDetails = cart?.Items.Select(i => new OrderDetail
+                        // Cập nhật chi tiết đơn hàng từ giỏ hàng trong database
+                        order.OrderDetails = cartItems.Select(i => new OrderDetail
                         {
                             ProductId = i.ProductId,
                             Quantity = i.Quantity,
-                            Price = i.Price
+                            Price = i.Product.Price
                         }).ToList();
 
                         // Lưu đơn hàng vào database
@@ -136,9 +154,11 @@ namespace NguyenTienPhat_2280620311.Controllers
 
                         _logger.LogInformation("Đã lưu đơn hàng thành công: {OrderId}", order.Id);
 
-                        // Xóa thông tin đơn hàng và giỏ hàng khỏi Session
+                        // Xóa giỏ hàng sau khi đặt hàng thành công
+                        await _cartService.ClearCartAsync(user.Id);
+
+                        // Xóa thông tin đơn hàng khỏi Session
                         HttpContext.Session.Remove("PendingOrder");
-                        HttpContext.Session.Remove("Cart");
 
                         // Tạo model cho view thanh toán thành công
                         var paymentDetail = new PaymentDetailModel
