@@ -1,16 +1,33 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using NguyenTienPhat_2280620311.Extensions;
 using NguyenTienPhat_2280620311.Models;
+using NguyenTienPhat_2280620311.Services;
 
 namespace NguyenTienPhat_2280620311.ViewComponents
 {
     public class CartCountViewComponent : ViewComponent
     {
-        public IViewComponentResult Invoke()
+        private readonly ICartService _cartService;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public CartCountViewComponent(ICartService cartService, UserManager<ApplicationUser> userManager)
         {
-            var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart");
-            int itemCount = cart?.Items.Sum(i => i.Quantity) ?? 0;
-            return View(itemCount);
+            _cartService = cartService;
+            _userManager = userManager;
+        }
+
+        public async Task<IViewComponentResult> InvokeAsync()
+        {
+            int cartCount = 0;
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = _userManager.GetUserId((System.Security.Claims.ClaimsPrincipal)User);
+                var cartItems = await _cartService.GetCartItemsAsync(userId);
+                cartCount = cartItems.Sum(x => x.Quantity);
+            }
+
+            return View(cartCount);
         }
     }
 } 

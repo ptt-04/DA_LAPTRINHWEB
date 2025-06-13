@@ -13,37 +13,38 @@
 
                     @foreach (var item in Model.Items)
                     {
-                        <div class="row mb-4 border-bottom pb-3">
+                        <div class="row mb-4 border-bottom pb-3 align-items-center">
                             <div class="col-md-2">
                                 <img src="@item.ImageUrl" class="img-fluid rounded" alt="@item.Name">
                             </div>
                             <div class="col-md-4">
-                                <h5>@item.Name</h5>
+                                <h5 class="product-name">@item.Name</h5>
+                                <p class="text-muted mb-0">@item.Price.ToString("#,##0") ₫</p>
                             </div>
                             <div class="col-md-3">
-                                <div class="d-flex align-items-center">
-                                    <form asp-action="DecreaseQuantity" asp-route-productId="@item.ProductId" method="post" style="display: inline;">
-                                        <button type="submit" class="btn btn-link px-2">
+                                <div class="quantity-control d-flex align-items-center justify-content-center">
+                                    <form asp-action="DecreaseQuantity" asp-route-productId="@item.ProductId" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-quantity">
                                             <i class="fas fa-minus"></i>
                                         </button>
                                     </form>
 
-                                    <input type="text" class="form-control form-control-sm text-center" style="width: 50px"
-                                        value="@item.Quantity" readonly>
+                                    <input type="text" class="form-control quantity-input mx-2" 
+                                           value="@item.Quantity" readonly>
 
-                                    <form asp-action="IncreaseQuantity" asp-route-productId="@item.ProductId" method="post" style="display: inline;">
-                                        <button type="submit" class="btn btn-link px-2">
+                                    <form asp-action="IncreaseQuantity" asp-route-productId="@item.ProductId" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-quantity">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </form>
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <h6 class="mb-0">@item.Price.ToString("#,##0") ₫</h6>
+                                <h6 class="total-price mb-0">@((item.Price * item.Quantity).ToString("#,##0")) ₫</h6>
                             </div>
                             <div class="col-md-1">
-                                <form asp-action="RemoveFromCart" asp-route-productId="@item.ProductId" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-link text-danger">
+                                <form asp-action="RemoveFromCart" asp-route-productId="@item.ProductId" method="post">
+                                    <button type="submit" class="btn btn-remove">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </form>
@@ -52,7 +53,7 @@
                     }
 
                     <div class="text-start mt-3">
-                        <a asp-controller="Home" asp-action="Index" class="text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="btn-continue">
                             <i class="fas fa-long-arrow-alt-left me-2"></i>Tiếp tục mua sắm
                         </a>
                     </div>
@@ -75,8 +76,8 @@
                         <label class="form-label">Mã giảm giá</label>
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="Nhập mã giảm giá">
-                            <button class="btn btn-outline-dark" type="button">
-                                <i class="fas fa-chevron-right"></i>
+                            <button class="btn btn-outline-primary" type="button">
+                                Áp dụng
                             </button>
                         </div>
                     </div>
@@ -85,10 +86,10 @@
 
                     <div class="d-flex justify-content-between mb-4">
                         <h5>Tổng tiền</h5>
-                        <h5>@Model.GetTotal().ToString("#,##0") ₫</h5>
+                        <h5 class="text-primary">@Model.GetTotal().ToString("#,##0") ₫</h5>
                     </div>
 
-                    <a asp-action="Checkout" class="btn btn-dark w-100">Thanh toán</a>
+                    <a asp-action="Checkout" class="btn btn-primary w-100">Thanh toán</a>
                 </div>
             </div>
         </div>
@@ -97,35 +98,114 @@
 
 @section Styles {
     <style>
-        .btn-link {
-            text-decoration: none;
-            color: #000;
-            background: none;
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .quantity-control {
+            background: #f8f9fa;
+            border-radius: 25px;
+            padding: 0.3rem;
+        }
+
+        .btn-quantity {
+            width: 32px;
+            height: 32px;
+            padding: 0;
             border: none;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .btn-quantity:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .quantity-input {
+            width: 50px !important;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-weight: 500;
             padding: 0;
         }
-        .btn-link:hover {
-            color: #666;
+
+        .total-price {
+            font-weight: 600;
+            color: var(--primary-color);
         }
-        .form-control:focus {
-            box-shadow: none;
-            border-color: #ced4da;
+
+        .btn-remove {
+            color: #dc3545;
+            border: none;
+            background: none;
+            padding: 0.5rem;
+            transition: all 0.2s;
         }
+
+        .btn-remove:hover {
+            color: #c82333;
+            transform: scale(1.1);
+        }
+
+        .btn-continue {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-continue:hover {
+            color: var(--secondary-color);
+        }
+
         .card {
             border: none;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
         }
+
         .card-title {
             color: #333;
             font-weight: 600;
         }
-        .btn-dark {
+
+        .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            padding: 0.8rem;
+            font-weight: 500;
+            border-radius: 8px;
         }
-        .btn-dark:hover {
+
+        .btn-primary:hover {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+            border-color: var(--primary-color);
         }
     </style>
 }

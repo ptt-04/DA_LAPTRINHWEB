@@ -16,8 +16,8 @@
                 </div>
                 <div class="card-body" style="color: #222;">
                     @{
-                        var cart = Context.Session.GetObjectFromJson<ShoppingCart>("Cart");
-                        var total = cart?.Items.Sum(i => i.Price * i.Quantity) ?? 0;
+                        var cartItems = ViewBag.CartItems as List<NguyenTienPhat_2280620311.Models.CartItemDb>;
+                        var total = cartItems?.Sum(i => i.Product.Price * i.Quantity) ?? 0;
                     }
                     <div class="table-responsive">
                         <table class="table">
@@ -30,15 +30,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (cart != null)
+                                @if (cartItems != null)
                                 {
-                                    foreach (var item in cart.Items)
+                                    foreach (var item in cartItems)
                                     {
                                         <tr>
-                                            <td>@item.Name</td>
+                                            <td>@item.Product.Name</td>
                                             <td class="text-center">@item.Quantity</td>
-                                            <td class="text-end">@item.Price.ToString("N0") ₫</td>
-                                            <td class="text-end">@((item.Price * item.Quantity).ToString("N0")) ₫</td>
+                                            <td class="text-end">@item.Product.Price.ToString("N0") ₫</td>
+                                            <td class="text-end">@((item.Product.Price * item.Quantity).ToString("N0")) ₫</td>
                                         </tr>
                                     }
                                 }

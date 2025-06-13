@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NguyenTienPhat_2280620311.Models;
 using NguyenTienPhat_2280620311.Repositories;
+using NguyenTienPhat_2280620311.Services;
 using NguyenTienPhat_2280620311.Vnpay;
 
 
@@ -17,6 +18,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
