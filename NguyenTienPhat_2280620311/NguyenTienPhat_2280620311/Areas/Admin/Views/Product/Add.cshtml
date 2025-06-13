@@ -1,0 +1,210 @@
+﻿@model NguyenTienPhat_2280620311.Models.Product
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Thêm Sản Phẩm Mới";
+}
+
+<!-- Thêm CSS cho CKEditor -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<style>
+    .ck-editor__editable {
+        min-height: 200px;
+        max-height: 400px;
+    }
+    .ck-editor__editable:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@modelError.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>Thêm Sản Phẩm Mới
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Add" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Name" class="form-control" placeholder="Tên sản phẩm" required />
+                                    <label asp-for="Name">@Html.DisplayNameFor(m => m.Name)</label>
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Price" class="form-control" placeholder="Giá sản phẩm" required />
+                                    <label asp-for="Price">@Html.DisplayNameFor(m => m.Price)</label>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">@Html.DisplayNameFor(m => m.Description)</label>
+                            <textarea asp-for="Description" id="editor" required></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select" required>
+                                        <option value="">-- Chọn danh mục --</option>
+                                    </select>
+                                    <label asp-for="CategoryId">@Html.DisplayNameFor(m => m.CategoryId)</label>
+                                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">@Html.DisplayNameFor(m => m.ImageUrl)</label>
+                                <div class="input-group">
+                                    <input type="file" name="imageUrl" class="form-control" accept="image/*" required />
+                                    <label class="input-group-text" for="imageUrl">
+                                        <i class="bi bi-image"></i>
+                                    </label>
+                                </div>
+                                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="preview-image mt-3 mb-3 text-center d-none">
+                            <img id="imagePreview" src="#" alt="Preview" class="img-fluid rounded" style="max-height: 200px" />
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>Thêm sản phẩm
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- CKEditor -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    
+    <script>
+        // Khởi tạo CKEditor
+        ClassicEditor
+            .create(document.querySelector('#editor'), {
+                toolbar: {
+                    items: [
+                        'heading',
+                        '|',
+                        'bold',
+                        'italic',
+                        'link',
+                        'bulletedList',
+                        'numberedList',
+                        '|',
+                        'outdent',
+                        'indent',
+                        '|',
+                        'blockQuote',
+                        'insertTable',
+                        'undo',
+                        'redo',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'vi',
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                },
+                htmlSupport: {
+                    allow: [
+                        {
+                            name: /.*/,
+                            attributes: true,
+                            classes: true,
+                            styles: true
+                        }
+                    ]
+                },
+                removePlugins: ['CKFinderUploadAdapter', 'CKFinder', 'EasyImage', 'Image', 'ImageCaption', 'ImageStyle', 'ImageToolbar', 'ImageUpload'],
+            })
+            .then(editor => {
+                // Xử lý khi form submit
+                document.querySelector('form').addEventListener('submit', function() {
+                    // Cập nhật nội dung từ CKEditor vào textarea trước khi submit
+                    const editorData = editor.getData();
+                    document.querySelector('#editor').value = editorData;
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+        // Hiển thị preview hình ảnh khi chọn file
+        document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+            const preview = document.querySelector('.preview-image');
+            const previewImg = document.querySelector('#imagePreview');
+            const file = e.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('d-none');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.classList.add('d-none');
+            }
+        });
+
+        // Validation form
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

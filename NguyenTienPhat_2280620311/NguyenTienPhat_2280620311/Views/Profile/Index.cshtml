@@ -1,0 +1,36 @@
+@model NguyenTienPhat_2280620311.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0">Hồ sơ cá nhân</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["Success"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+                    <dl class="row">
+                        <dt class="col-sm-4">Họ và tên</dt>
+                        <dd class="col-sm-8">@Model.FullName</dd>
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">@Model.Email</dd>
+                        <dt class="col-sm-4">Địa chỉ</dt>
+                        <dd class="col-sm-8">@Model.Address</dd>
+                        <dt class="col-sm-4">Tuổi</dt>
+                        <dd class="col-sm-8">@Model.Age</dd>
+                    </dl>
+                    <a asp-action="Edit" class="btn btn-danger"><i class="fas fa-edit"></i> Chỉnh sửa hồ sơ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

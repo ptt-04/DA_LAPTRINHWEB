@@ -1,0 +1,48 @@
+@model NguyenTienPhat_2280620311.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Chỉnh sửa hồ sơ cá nhân";
+}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0">Chỉnh sửa hồ sơ cá nhân</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+                    <form asp-action="Edit" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên</label>
+                            <input asp-for="FullName" class="form-control" required />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" readonly />
+                            <small class="text-muted">Không thể thay đổi email khi đăng nhập bằng Google.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <input asp-for="Address" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tuổi</label>
+                            <input asp-for="Age" class="form-control" />
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Quay lại</a>
+                            <button type="submit" class="btn btn-danger"><i class="fas fa-save"></i> Lưu thay đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+} 

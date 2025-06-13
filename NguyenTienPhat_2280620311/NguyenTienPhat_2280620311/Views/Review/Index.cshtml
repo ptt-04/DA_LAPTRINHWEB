@@ -1,0 +1,95 @@
+@model IEnumerable<NguyenTienPhat_2280620311.Models.Review>
+
+@{
+    ViewData["Title"] = "Danh sách đánh giá";
+}
+
+<div class="container mt-4">
+    <h2>Danh sách đánh giá</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        @foreach (var review in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title">@review.Product?.Name</h5>
+                                <p class="card-text text-muted">Đánh giá bởi: @review.User?.FullName</p>
+                            </div>
+                            <div class="text-warning">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= review.Rating)
+                                    {
+                                        <i class="fas fa-star"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star"></i>
+                                    }
+                                }
+                                <span class="ms-1">(@review.Rating/5)</span>
+                            </div>
+                        </div>
+                        <p class="card-text">@review.Comment</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> @review.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </small>
+                            <div>
+                                <a href="@Url.Action("ProductReviews", new { id = review.ProductId })" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Xem sản phẩm
+                                </a>
+                                @if (User.Identity.IsAuthenticated && 
+                                     (review.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value || 
+                                      User.IsInRole("Admin")))
+                                {
+                                    <a href="@Url.Action("Edit", new { id = review.Id })" 
+                                       class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@review.Id" method="post" 
+                                          style="display: inline;" 
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center mt-5">
+            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Chưa có đánh giá nào</h4>
+            <p class="text-muted">Hãy là người đầu tiên đánh giá sản phẩm!</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+} 

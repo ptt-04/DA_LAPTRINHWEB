@@ -1,0 +1,247 @@
+@model IEnumerable<NguyenTienPhat_2280620311.Models.Product>
+
+@{
+    ViewData["Title"] = "Danh Sách Sản Phẩm";
+    int numOfQuantity = 1;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="filter-sidebar">
+                <form method="get" id="searchForm">
+                    <!-- Giữ lại searchTerm nhưng ẩn đi -->
+                    <input type="hidden" name="searchTerm" value="@ViewBag.SearchTerm" />
+
+                    <!-- Danh mục -->
+                    <div class="filter-box mb-4">
+                        <h5 class="filter-title">
+                            <i class="fas fa-list me-2"></i>Danh mục
+                        </h5>
+                        <div class="category-list">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="categoryId" 
+                                       value="" checked="@(ViewBag.CategoryId == null)" 
+                                       onchange="document.getElementById('searchForm').submit()">
+                                <label class="form-check-label">
+                                    Tất cả sản phẩm
+                                </label>
+                            </div>
+                            @foreach (var category in ViewBag.Categories)
+                            {
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="categoryId" 
+                                           value="@category.Id" checked="@(ViewBag.CategoryId == category.Id)"
+                                           onchange="document.getElementById('searchForm').submit()">
+                                    <label class="form-check-label">
+                                        @category.Name
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Khoảng giá -->
+                    <div class="filter-box">
+                        <h5 class="filter-title">
+                            <i class="fas fa-dollar-sign me-2"></i>Khoảng giá
+                        </h5>
+                        <div class="price-range">
+                            <div class="mb-3">
+                                <label class="form-label">Từ:</label>
+                                <input type="number" class="form-control" name="minPrice" 
+                                       value="@ViewBag.MinPrice" min="0" step="1000"
+                                       onchange="document.getElementById('searchForm').submit()">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Đến:</label>
+                                <input type="number" class="form-control" name="maxPrice" 
+                                       value="@ViewBag.MaxPrice" min="0" step="1000"
+                                       onchange="document.getElementById('searchForm').submit()">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="col-lg-9">
+            <div class="products-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">@ViewData["Title"]</h4>
+                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                    {
+                        <div class="search-result">
+                            Kết quả tìm kiếm cho: <strong>@ViewBag.SearchTerm</strong>
+                            <a href="@Url.Action("Index")" class="btn btn-sm btn-outline-secondary ms-2">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="row g-4">
+                @if (Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <div class="col-md-4">
+                            <div class="product-card card h-100">
+                                <div class="position-relative">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name">
+                                    }
+                                    else
+                                    {
+                                        <img src="/images/default-product.png" class="card-img-top" alt="No Image">
+                                    }
+                                    <div class="product-overlay">
+                                        <div class="d-flex gap-2">
+                                            <a asp-action="Details" asp-route-id="@item.Id" 
+                                               class="btn btn-light btn-sm">
+                                                <i class="fas fa-info-circle"></i>
+                                            </a>
+                                            <a asp-controller="ShoppingCart" asp-action="AddToCart"
+                                               asp-route-productId="@item.Id"
+                                               asp-route-quantity="@numOfQuantity"
+                                               class="btn btn-add-cart btn-sm">
+                                                <i class="fas fa-cart-plus"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="product-title text-truncate">@item.Name</h5>
+                                    <p class="product-category mb-2">
+                                        <i class="fas fa-tag me-1"></i>@item.Category?.Name
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="product-price">@item.Price.ToString("N0") VNĐ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>Không tìm thấy sản phẩm nào phù hợp.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .filter-sidebar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .filter-title {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .filter-box {
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .filter-box:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .search-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .search-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .filter-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .filter-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .product-card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .product-card .card-img-top {
+            height: 200px;
+            object-fit: contain;
+            padding: 1rem;
+        }
+        .product-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .product-category {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .product-price {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .product-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .product-card:hover .product-overlay {
+            opacity: 1;
+        }
+        .btn-add-cart {
+            background: var(--secondary-color);
+            color: white;
+        }
+        .btn-add-cart:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        .form-check-input:checked {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        .search-result {
+            background-color: var(--light-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-result strong {
+            color: var(--primary-color);
+        }
+    </style>
+} 

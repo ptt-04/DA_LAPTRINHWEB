@@ -1,0 +1,151 @@
+@model NguyenTienPhat_2280620311.Models.Product
+
+@{
+    ViewData["Title"] = $"Đánh giá - {Model.Name}";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <img src="@Model.ImageUrl" class="card-img-top" alt="@Model.Name" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Name</h5>
+                    <p class="card-text text-primary fw-bold">@Model.Price.ToString("N0") VNĐ</p>
+                    <p class="card-text">@Model.Description</p>
+                    
+                    @if (Model.Reviews != null && Model.Reviews.Any())
+                    {
+                        var avgRating = Model.Reviews.Average(r => r.Rating);
+                        <div class="mb-3">
+                            <div class="text-warning">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= avgRating)
+                                    {
+                                        <i class="fas fa-star"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star"></i>
+                                    }
+                                }
+                                <span class="ms-1">(@avgRating.ToString("F1")/5)</span>
+                            </div>
+                            <small class="text-muted">@Model.Reviews.Count() đánh giá</small>
+                        </div>
+                    }
+                    
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("Create", new { productId = Model.Id })" class="btn btn-primary">
+                            <i class="fas fa-star"></i> Viết đánh giá
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/Identity/Account/Login" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập để đánh giá
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <h3>Đánh giá sản phẩm</h3>
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (Model.Reviews != null && Model.Reviews.Any())
+            {
+                <div class="row">
+                    @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedAt))
+                    {
+                        <div class="col-12 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="card-subtitle mb-1">@review.User?.FullName</h6>
+                                            <div class="text-warning">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= review.Rating)
+                                                    {
+                                                        <i class="fas fa-star"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                                <span class="ms-1">(@review.Rating/5)</span>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">
+                                            @review.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                            @if (review.UpdatedAt.HasValue)
+                                            {
+                                                <br><small>(Đã cập nhật: @review.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm"))</small>
+                                            }
+                                        </small>
+                                    </div>
+                                    <p class="card-text">@review.Comment</p>
+                                    
+                                    @if (User.Identity.IsAuthenticated && 
+                                         (review.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value || 
+                                          User.IsInRole("Admin")))
+                                    {
+                                        <div class="mt-2">
+                                            <a href="@Url.Action("Edit", new { id = review.Id })" 
+                                               class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-edit"></i> Sửa
+                                            </a>
+                                            <form asp-action="Delete" asp-route-id="@review.Id" method="post" 
+                                                  style="display: inline;" 
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-trash"></i> Xóa
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center mt-5">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Chưa có đánh giá nào</h4>
+                    <p class="text-muted">Hãy là người đầu tiên đánh giá sản phẩm này!</p>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("Create", new { productId = Model.Id })" class="btn btn-primary">
+                            <i class="fas fa-star"></i> Viết đánh giá đầu tiên
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+} 

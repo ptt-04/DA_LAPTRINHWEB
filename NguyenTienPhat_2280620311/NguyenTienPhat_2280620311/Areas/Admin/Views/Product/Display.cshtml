@@ -1,0 +1,276 @@
+﻿@model NguyenTienPhat_2280620311.Models.Product
+@{
+    ViewData["Title"] = "Chi Tiết Sản Phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" href="~/css/display.css" />
+<div class="container">
+    <div class="product-container">
+        <div class="row">
+            <!-- Product Images -->
+            <div class="col-md-6">
+                <img src="@Model.ImageUrl"
+                     alt="@Model.Name"
+                     class="img-fluid rounded mb-4 product-image"
+                     id="mainImage" />
+                <div class="d-flex justify-content-between">
+                    <img src="@Model.ImageUrl"
+                         alt="Thumbnail 1"
+                         class="thumbnail active"
+                         onclick="changeImage(event, this.src)" />
+                    <!-- Có thể thêm nhiều thumbnail khác nếu có -->
+                </div>
+            </div>
+
+            <!-- Product Details -->
+            <div class="col-md-6">
+                <h1 class="product-title">@Model.Name</h1>
+                <div class="product-description mb-3">
+                    @Html.Raw(Model.Description)
+                </div>
+
+                <div class="price-section">
+                    <span class="current-price me-2">@Model.Price.ToString("N0")đ</span>
+                    <!-- Nếu có giá gốc thì hiển thị thêm -->
+                    @* <span class="original-price">14.190.000đ</span> *@
+                </div>
+
+                <div class="rating mb-4">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                    <span class="ms-2 text-dark">4.5 (120 Đánh giá)</span>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="mb-3">Màu sắc:</h5>
+                    <div class="btn-group color-option" role="group">
+                        <input type="radio" class="btn-check" name="color" id="black" checked />
+                        <label class="btn btn-outline-dark" for="black">Đen</label>
+                        <input type="radio" class="btn-check" name="color" id="silver" />
+                        <label class="btn btn-outline-secondary" for="silver">Bạc</label>
+                        <input type="radio" class="btn-check" name="color" id="blue" />
+                        <label class="btn btn-outline-primary" for="blue">Xanh</label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="quantity" class="form-label">Số lượng:</label>
+                    <input type="number" class="form-control quantity-input" id="quantity" value="1" min="1" />
+                </div>
+
+                <div class="action-buttons mb-4">
+                    <button class="btn btn-warning">
+                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                    </button>
+                    <button class="btn btn-outline-secondary">
+                        <i class="bi bi-heart"></i> Yêu thích
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <h5>Tính năng nổi bật:</h5>
+                    <ul class="features-list">
+                        <li>
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>Màn hình đẹp, hiệu năng mạnh mẽ
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>Camera chất lượng cao
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>Pin dung lượng lớn
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="warranty-info">
+                    <p class="mb-2">
+                        <i class="bi bi-shield-check text-success me-2"></i>Bảo hành chính hãng 1 năm
+                    </p>
+                    <p>
+                        <i class="bi bi-arrow-repeat text-success me-2"></i>Đổi trả miễn phí trong 30 ngày
+                    </p>
+                </div>
+                <a asp-action="Index" class="btn btn-secondary mt-4">Quay lại danh sách</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeImage(event, src) {
+          document.getElementById("mainImage").src = src;
+          document
+            .querySelectorAll(".thumbnail")
+            .forEach((thumb) => thumb.classList.remove("active"));
+          event.target.classList.add("active");
+        }
+    </script>
+}
+
+<style>
+    .product-container {
+        background: #fff;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        margin-top: 30px;
+    }
+
+    .product-image {
+        max-height: 500px;
+        object-fit: contain;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .thumbnail {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        border: 2px solid transparent;
+    }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            opacity: 1;
+            border-color: #ffcc00;
+        }
+
+    .product-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .price-section {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+
+    .current-price {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #e60000;
+    }
+
+    .original-price {
+        font-size: 1.2rem;
+        color: #6c757d;
+        text-decoration: line-through;
+    }
+
+    .rating {
+        color: #ffc107;
+        font-size: 1.2rem;
+    }
+
+    .color-option {
+        margin: 10px 0;
+    }
+
+    .btn-check:checked + .btn-outline-dark,
+    .btn-check:checked + .btn-outline-secondary,
+    .btn-check:checked + .btn-outline-primary {
+        background-color: #ffcc00;
+        border-color: #ffcc00;
+        color: #000;
+    }
+
+    .quantity-input {
+        width: 100px;
+        text-align: center;
+    }
+
+    .action-buttons .btn {
+        padding: 12px 25px;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+
+    .features-list {
+        list-style: none;
+        padding: 0;
+    }
+
+        .features-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+            .features-list li:last-child {
+                border-bottom: none;
+            }
+
+    .warranty-info {
+        margin-top: 20px;
+    }
+
+    .product-description {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .product-description h1,
+    .product-description h2,
+    .product-description h3,
+    .product-description h4,
+    .product-description h5,
+    .product-description h6 {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .product-description p {
+        margin-bottom: 1rem;
+    }
+
+    .product-description ul,
+    .product-description ol {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+    }
+
+    .product-description table {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-collapse: collapse;
+    }
+
+    .product-description table th,
+    .product-description table td {
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .product-description table th {
+        background-color: #f8f9fa;
+    }
+
+    .product-description blockquote {
+        margin: 1rem 0;
+        padding: 1rem;
+        border-left: 4px solid #ffcc00;
+        background-color: #f8f9fa;
+    }
+
+    .product-description a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .product-description a:hover {
+        text-decoration: underline;
+    }
+</style>

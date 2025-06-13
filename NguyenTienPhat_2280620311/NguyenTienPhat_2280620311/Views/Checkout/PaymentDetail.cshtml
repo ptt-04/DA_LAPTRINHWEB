@@ -1,0 +1,32 @@
+@model NguyenTienPhat_2280620311.Models.Vnpay.PaymentDetailModel
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h3 class="text-center">Chi tiết thanh toán</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Mã đơn hàng:</strong> @Model.OrderId</p>
+                    <p><strong>Mã giao dịch:</strong> @Model.TransactionId</p>
+                    <p><strong>Phương thức thanh toán:</strong> @Model.PaymentMethod</p>
+                    <p><strong>Số tiền:</strong> @Model.Amount.ToString("N0") VNĐ</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Tên khách hàng:</strong> @Model.CustomerName</p>
+                    <p><strong>Mô tả đơn hàng:</strong> @Model.OrderDescription</p>
+                    <p><strong>Thời gian thanh toán:</strong> @Model.PaymentTime.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                    <p><strong>Trạng thái:</strong> 
+                        <span class="badge @(Model.PaymentStatus == "Thành công" ? "bg-success" : "bg-danger")">
+                            @Model.PaymentStatus
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <a href="/" class="btn btn-primary">Về trang chủ</a>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,291 @@
+﻿@model Order
+<script src="https://esgoo.net/scripts/jquery.js"></script>
+<style type="text/css">
+    .css_select_div{ text-align: center;}
+    .css_select{ display: inline-table; width: 25%; padding: 5px; margin: 5px 2%; border: solid 1px #d32f2f; border-radius: 5px; background: #fff; color: #222;}
+    .css_select:focus { border-color: #b71c1c; outline: none; }
+</style>
+@using NguyenTienPhat_2280620311.Extensions
+
+<div class="container mt-4" style="background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(211,47,47,0.08); padding-bottom: 32px;">
+    <div class="row g-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card mb-4" style="border: 1px solid #ffcdd2;">
+                <div class="card-header" style="background: #d32f2f; color: #fff;">
+                    <h5 class="mb-0">Thông tin đơn hàng</h5>
+                </div>
+                <div class="card-body" style="color: #222;">
+                    @{
+                        var cart = Context.Session.GetObjectFromJson<ShoppingCart>("Cart");
+                        var total = cart?.Items.Sum(i => i.Price * i.Quantity) ?? 0;
+                    }
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (cart != null)
+                                {
+                                    foreach (var item in cart.Items)
+                                    {
+                                        <tr>
+                                            <td>@item.Name</td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-end">@item.Price.ToString("N0") ₫</td>
+                                            <td class="text-end">@((item.Price * item.Quantity).ToString("N0")) ₫</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                                    <td class="text-end"><strong>@total.ToString("N0") ₫</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card" style="border: 1px solid #ffcdd2;">
+                <div class="card-header" style="background: #d32f2f; color: #fff;">
+                    <h5 class="mb-0">Thông tin giao hàng</h5>
+                </div>
+                <div class="card-body" style="color: #222;">
+                    <form id="checkoutForm" method="post">
+                        <div class="mb-3">
+                            <label asp-for="ShippingAddress" class="form-label">Địa chỉ giao hàng</label>
+                            <input asp-for="ShippingAddress" class="form-control" required />
+                        </div>
+
+                        <div class="mb-3 css_select_div">
+                            <select class="css_select" id="tinh" name="City" title="Chọn Tỉnh Thành" required>
+                                <option value="">Tỉnh Thành</option>
+                            </select>
+                            <select class="css_select" id="quan" name="District" title="Chọn Quận Huyện" required>
+                                <option value="">Quận Huyện</option>
+                            </select>
+                            <select class="css_select" id="phuong" name="Ward" title="Chọn Phường Xã" required>
+                                <option value="">Phường Xã</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label">Ghi chú</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Phương thức thanh toán</label>
+                            <div class="payment-methods d-flex flex-row gap-2">
+                                <div class="payment-method-item flex-fill">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="cod" value="cod" checked>
+                                    <label class="btn btn-outline-secondary w-100 text-start" for="cod">
+                                        <i class="fas fa-money-bill-wave me-2"></i>
+                                        Thanh toán khi nhận hàng (COD)
+                                    </label>
+                                </div>
+                                <div class="payment-method-item flex-fill">
+                                    <input type="radio" class="btn-check" name="paymentMethod" id="vnpay" value="vnpay">
+                                    <label class="btn btn-outline-primary w-100 text-start" for="vnpay">
+                                        <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo.svg" alt="VNPay" height="24" class="me-2">
+                                        Thanh toán qua VNPAY
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="codSubmit">
+                                <i class="fas fa-shopping-cart me-2"></i>Đặt hàng COD
+                            </button>
+                            <button type="button" class="btn btn-primary btn-lg" id="vnpaySubmit" style="display: none; background-color: #0055AA;">
+                                <i class="fas fa-credit-card me-2"></i>Thanh toán qua VNPAY
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card" style="border: 1px solid #ffcdd2;">
+                <div class="card-header" style="background: #d32f2f; color: #fff;">
+                    <h5 class="mb-0">Hướng dẫn thanh toán</h5>
+                </div>
+                <div class="card-body" style="color: #222;">
+                    <div class="payment-guide">
+                        <h6 style="color: #d32f2f;">Thanh toán qua VNPAY:</h6>
+                        <ol class="ps-3">
+                            <li>Chọn phương thức "Thanh toán qua VNPAY"</li>
+                            <li>Nhấn nút "Thanh toán qua VNPAY"</li>
+                            <li>Quý khách sẽ được chuyển đến cổng thanh toán VNPAY</li>
+                            <li>Thực hiện thanh toán theo hướng dẫn</li>
+                        </ol>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Thanh toán an toàn qua cổng VNPAY
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["PaymentError"] != null)
+{
+    <div class="alert alert-danger mt-3">
+        @TempData["PaymentError"]
+    </div>
+}
+
+@section Styles {
+    <style>
+        .payment-methods .payment-method-item {
+            transition: all 0.3s ease;
+        }
+        .payment-methods .btn-outline-secondary,
+        .payment-methods .btn-outline-primary {
+            border-color: #d32f2f;
+            color: #222;
+            background: #fff;
+        }
+        .payment-methods .btn-outline-secondary:hover,
+        .payment-methods .btn-outline-primary:hover {
+            background: #d32f2f;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .btn-check:checked + .btn-outline-secondary,
+        .btn-check:checked + .btn-outline-primary {
+            background: #d32f2f;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(211,47,47,0.1);
+        }
+        .btn-primary, .btn-primary:focus, .btn-primary:active {
+            background: #d32f2f !important;
+            border-color: #d32f2f !important;
+        }
+        .btn-primary:hover {
+            background: #b71c1c !important;
+            border-color: #b71c1c !important;
+        }
+        .payment-guide {
+            font-size: 0.95rem;
+            color: #222;
+        }
+        .payment-guide ol li {
+            margin-bottom: 0.5rem;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(211,47,47,0.06);
+        }
+        .form-control:focus {
+            border-color: #d32f2f;
+            box-shadow: 0 0 0 0.2rem rgba(211,47,47,0.08);
+        }
+        label.form-label {
+            color: #222;
+            font-weight: 500;
+        }
+        th, td {
+            color: #222;
+        }
+        .table thead th {
+            background: #ffcdd2;
+            color: #222;
+        }
+        .table tfoot td {
+            background: #fff0f0;
+            color: #d32f2f;
+        }
+        .alert-danger {
+            background: #ffcdd2;
+            color: #b71c1c;
+            border-color: #d32f2f;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('input[name="paymentMethod"]').change(function() {
+                if ($(this).val() === 'vnpay') {
+                    $('#codSubmit').hide();
+                    $('#vnpaySubmit').fadeIn();
+                } else {
+                    $('#vnpaySubmit').hide();
+                    $('#codSubmit').fadeIn();
+                }
+            });
+
+            $('#vnpaySubmit').click(function() {
+                var form = $('#checkoutForm');
+                if (!form[0].checkValidity()) {
+                    form[0].reportValidity();
+                    return;
+                }
+                
+                form.attr('action', '@Url.Action("CreatePaymentUrlVnpay", "Payment")');
+                form.submit();
+            });
+
+            $('#checkoutForm').submit(function(e) {
+                if ($('input[name="paymentMethod"]:checked').val() === 'cod') {
+                    $(this).attr('action', '@Url.Action("Checkout", "ShoppingCart")');
+                }
+            });
+
+            //Lấy tỉnh thành
+            $.getJSON('https://esgoo.net/api-tinhthanh/1/0.htm',function(data_tinh){	       
+                if(data_tinh.error==0){
+                   $.each(data_tinh.data, function (key_tinh,val_tinh) {
+                      $("#tinh").append('<option value="'+val_tinh.id+'">'+val_tinh.full_name+'</option>');
+                   });
+                   $("#tinh").change(function(e){
+                        var idtinh=$(this).val();
+                        //Lấy quận huyện
+                        $.getJSON('https://esgoo.net/api-tinhthanh/2/'+idtinh+'.htm',function(data_quan){	       
+                            if(data_quan.error==0){
+                               $("#quan").html('<option value="0">Quận Huyện</option>');  
+                               $("#phuong").html('<option value="0">Phường Xã</option>');   
+                               $.each(data_quan.data, function (key_quan,val_quan) {
+                                  $("#quan").append('<option value="'+val_quan.id+'">'+val_quan.full_name+'</option>');
+                               });
+                               //Lấy phường xã  
+                               $("#quan").change(function(e){
+                                    var idquan=$(this).val();
+                                    $.getJSON('https://esgoo.net/api-tinhthanh/3/'+idquan+'.htm',function(data_phuong){	       
+                                        if(data_phuong.error==0){
+                                           $("#phuong").html('<option value="0">Phường Xã</option>');   
+                                           $.each(data_phuong.data, function (key_phuong,val_phuong) {
+                                              $("#phuong").append('<option value="'+val_phuong.id+'">'+val_phuong.full_name+'</option>');
+                                           });
+                                        }
+                                    });
+                               });
+                                
+                            }
+                        });
+                   });   
+                
+                }
+            });
+         });    
+    </script>
+}

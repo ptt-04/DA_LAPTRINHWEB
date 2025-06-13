@@ -1,0 +1,176 @@
+@model NguyenTienPhat_2280620311.Models.Review
+
+@{
+    ViewData["Title"] = "Viết đánh giá";
+    var product = ViewBag.Product as NguyenTienPhat_2280620311.Models.Product;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Viết đánh giá</h3>
+                </div>
+                <div class="card-body">
+                    @if (product != null)
+                    {
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <img src="@product.ImageUrl" class="img-fluid rounded" alt="@product.Name">
+                            </div>
+                            <div class="col-md-9">
+                                <h5>@product.Name</h5>
+                                <p class="text-primary fw-bold">@product.Price.ToString("N0") VNĐ</p>
+                                <p class="text-muted">@product.Description</p>
+                            </div>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post">
+                        <input type="hidden" asp-for="ProductId" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">@Html.DisplayNameFor(model => model.Rating)</label>
+                            <div class="rating-input">
+                                <div class="stars">
+                                    @for (int i = 5; i >= 1; i--)
+                                    {
+                                        <input type="radio" id="star@(i)" name="Rating" value="@i" class="star-input" />
+                                        <label for="star@(i)" class="star-label">
+                                            <i class="far fa-star"></i>
+                                        </label>
+                                    }
+                                </div>
+                                <span class="rating-text ms-2">Chọn số sao</span>
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Comment" class="form-label"></label>
+                            <textarea asp-for="Comment" class="form-control" rows="5" 
+                                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("ProductReviews", new { id = Model.ProductId })" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Gửi đánh giá
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-input {
+        display: flex;
+        align-items: center;
+    }
+    
+    .stars {
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 2px;
+    }
+    
+    .star-input {
+        display: none;
+    }
+    
+    .star-label {
+        cursor: pointer;
+        font-size: 24px;
+        color: #ddd;
+        transition: color 0.2s;
+    }
+    
+    .star-label:hover,
+    .star-label:hover ~ .star-label,
+    .star-input:checked ~ .star-label {
+        color: #ffc107;
+    }
+    
+    .star-label i {
+        transition: transform 0.1s;
+    }
+    
+    .star-label:hover i {
+        transform: scale(1.2);
+    }
+    
+    .rating-text {
+        font-size: 14px;
+        color: #6c757d;
+        min-width: 100px;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Update rating text when stars are clicked
+            $('.star-input').change(function() {
+                var rating = $(this).val();
+                var text = '';
+                
+                switch(rating) {
+                    case '1': text = 'Rất không hài lòng'; break;
+                    case '2': text = 'Không hài lòng'; break;
+                    case '3': text = 'Bình thường'; break;
+                    case '4': text = 'Hài lòng'; break;
+                    case '5': text = 'Rất hài lòng'; break;
+                    default: text = 'Chọn số sao';
+                }
+                
+                $('.rating-text').text(text);
+            });
+            
+            // Hover effects for rating text
+            $('.star-label').hover(
+                function() {
+                    var rating = $(this).prev('.star-input').val();
+                    var text = '';
+                    
+                    switch(rating) {
+                        case '1': text = 'Rất không hài lòng'; break;
+                        case '2': text = 'Không hài lòng'; break;
+                        case '3': text = 'Bình thường'; break;
+                        case '4': text = 'Hài lòng'; break;
+                        case '5': text = 'Rất hài lòng'; break;
+                    }
+                    
+                    $('.rating-text').text(text);
+                },
+                function() {
+                    var selectedRating = $('.star-input:checked').val();
+                    var text = '';
+                    
+                    if (selectedRating) {
+                        switch(selectedRating) {
+                            case '1': text = 'Rất không hài lòng'; break;
+                            case '2': text = 'Không hài lòng'; break;
+                            case '3': text = 'Bình thường'; break;
+                            case '4': text = 'Hài lòng'; break;
+                            case '5': text = 'Rất hài lòng'; break;
+                        }
+                    } else {
+                        text = 'Chọn số sao';
+                    }
+                    
+                    $('.rating-text').text(text);
+                }
+            );
+        });
+    </script>
+} 
