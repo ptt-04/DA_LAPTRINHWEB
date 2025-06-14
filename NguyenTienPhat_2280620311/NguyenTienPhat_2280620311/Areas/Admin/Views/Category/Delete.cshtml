@@ -1,0 +1,30 @@
+@model NguyenTienPhat_2280620311.Models.Category
+@{
+    ViewData["Title"] = "Xóa danh mục";
+}
+<h1 class="mt-4">Xóa danh mục sản phẩm</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a href="/Admin/Category">Category Management</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-trash-alt me-1"></i> Xác nhận xóa danh mục
+            </div>
+            <div class="card-body">
+                <p>Bạn có chắc chắn muốn xóa danh mục sau không?</p>
+                <ul>
+                    <li><b>ID:</b> @Model.Id</li>
+                    <li><b>Tên danh mục:</b> @Model.Name</li>
+                </ul>
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                    <a href="/Admin/Category" class="btn btn-secondary ms-2">Hủy</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

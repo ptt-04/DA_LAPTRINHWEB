@@ -1,0 +1,37 @@
+@model NguyenTienPhat_2280620311.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Sửa tài khoản";
+}
+<h1 class="mt-4">Sửa tài khoản</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a href="/Admin/User">User Management</a></li>
+    <li class="breadcrumb-item active">Edit</li>
+</ol>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-edit me-1"></i> Sửa thông tin tài khoản
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label class="form-label">User Name</label>
+                        <input type="text" name="userName" class="form-control" value="@Model.UserName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="@Model.Email" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role hiện tại</label>
+                        <input type="text" class="form-control" value="@ViewBag.Role" readonly />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    <a href="/Admin/User" class="btn btn-secondary ms-2">Quay lại</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 
