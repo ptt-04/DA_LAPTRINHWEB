@@ -99,7 +99,8 @@
 @section Styles {
     <style>
         :root {
-            --shopee-color: #ee4d2d;
+            --shopee-color: #d32f2f;
+            --shopee-color-dark: #b71c1c;
             --status-pending: #ffeaa7;
             --status-processing: #fdcb6e;
             --status-completed: #00b894;
@@ -114,7 +115,9 @@
             border-color: var(--shopee-color);
         }
         .card-header {
-            background-color: #fff !important;
+            background-color: var(--shopee-color) !important;
+            color: #fff !important;
+            border-radius: 8px 8px 0 0;
         }
         .text-shopee {
             color: var(--shopee-color) !important;
@@ -125,13 +128,14 @@
             color: #fff;
         }
         .btn-shopee:hover {
-            background-color: #d73211;
-            border-color: #d73211;
+            background-color: var(--shopee-color-dark);
+            border-color: var(--shopee-color-dark);
             color: #fff;
         }
         .btn-outline-shopee {
             border-color: var(--shopee-color);
             color: var(--shopee-color);
+            background: #fff;
         }
         .btn-outline-shopee:hover {
             background-color: var(--shopee-color);

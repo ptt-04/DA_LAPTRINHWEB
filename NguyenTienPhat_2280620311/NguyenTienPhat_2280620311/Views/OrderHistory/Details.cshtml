@@ -36,8 +36,16 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @{
+                            // Tính tổng giảm giá nếu có
+                            bool hasDiscount = Model.TotalPrice < Model.OrderDetails.Sum(x => x.Product.Price * x.Quantity);
+                        }
                         @foreach (var item in Model.OrderDetails)
                         {
+                            var originalUnitPrice = item.Product?.Price ?? 0;
+                            var originalTotal = originalUnitPrice * item.Quantity;
+                            var discountedUnitPrice = item.Price;
+                            var discountedTotal = discountedUnitPrice * item.Quantity;
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -52,12 +60,43 @@
                                     </div>
                                 </td>
                                 <td class="text-center">@item.Quantity</td>
-                                <td class="text-end">@item.Price.ToString("#,##0") ₫</td>
-                                <td class="text-end">@((item.Price * item.Quantity).ToString("#,##0")) ₫</td>
+                                <td class="text-end">
+                                    @if (hasDiscount && originalUnitPrice > discountedUnitPrice)
+                                    {
+                                        <span class="text-muted" style="text-decoration:line-through; font-size:0.95em;">@originalUnitPrice.ToString("#,##0") ₫</span><br />
+                                        <span class="text-shopee fw-bold">@discountedUnitPrice.ToString("#,##0") ₫</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-shopee fw-bold">@discountedUnitPrice.ToString("#,##0") ₫</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (hasDiscount && originalTotal > discountedTotal)
+                                    {
+                                        <span class="text-muted" style="text-decoration:line-through; font-size:0.95em;">@originalTotal.ToString("#,##0") ₫</span><br />
+                                        <span class="text-shopee fw-bold">@discountedTotal.ToString("#,##0") ₫</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-shopee fw-bold">@discountedTotal.ToString("#,##0") ₫</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
                     <tfoot>
+                        @{
+                            var totalOrigin = Model.OrderDetails.Sum(x => x.Product.Price * x.Quantity);
+                            var discount = totalOrigin - Model.TotalPrice;
+                        }
+                        @if (discount > 0)
+                        {
+                            <tr>
+                                <td colspan="3" class="text-end text-muted">Đã trừ mã giảm giá:</td>
+                                <td class="text-end text-danger">-@discount.ToString("#,##0") ₫</td>
+                            </tr>
+                        }
                         <tr class="table-total">
                             <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
                             <td class="text-end"><strong class="text-shopee">@Model.TotalPrice.ToString("#,##0") ₫</strong></td>
@@ -72,13 +111,29 @@
 @section Styles {
     <style>
         :root {
-            --shopee-color: #ee4d2d;
+            --shopee-color: #d32f2f;
+            --shopee-color-dark: #b71c1c;
         }
         .bg-shopee {
             background-color: var(--shopee-color) !important;
         }
         .text-shopee {
             color: var(--shopee-color) !important;
+        }
+        .card-header {
+            background-color: var(--shopee-color) !important;
+            color: #fff !important;
+            border-radius: 8px 8px 0 0;
+        }
+        .btn-outline-light {
+            background: #fff;
+            color: var(--shopee-color);
+            border: 1.5px solid var(--shopee-color);
+        }
+        .btn-outline-light:hover {
+            background-color: var(--shopee-color-dark);
+            color: #fff;
+            border-color: var(--shopee-color-dark);
         }
         .table th {
             background-color: #f8f9fa;
@@ -93,9 +148,6 @@
         }
         .table-total {
             border-top: 2px solid var(--shopee-color);
-        }
-        .btn-outline-light:hover {
-            background-color: rgba(255,255,255,0.1);
         }
     </style>
 } 

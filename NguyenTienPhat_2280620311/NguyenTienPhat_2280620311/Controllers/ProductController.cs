@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using NguyenTienPhat_2280620311.Models;
 using NguyenTienPhat_2280620311.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace NguyenTienPhat_2280620311.Controllers
 {
@@ -10,11 +11,13 @@ namespace NguyenTienPhat_2280620311.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ApplicationDbContext _context;
 
-        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository)
+        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository, ApplicationDbContext context)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
+            _context = context;
         }
 
         // GET: Product
@@ -65,6 +68,12 @@ namespace NguyenTienPhat_2280620311.Controllers
             {
                 return NotFound();
             }
+            // Lấy danh sách mã giảm giá còn hiệu lực, còn số lượng, đang hoạt động
+            var now = DateTime.Now;
+            var coupons = await _context.Coupons
+                .Where(c => c.IsActive && c.Quantity > 0 && c.StartDate <= now && c.EndDate >= now)
+                .ToListAsync();
+            ViewBag.Coupons = coupons;
             return View(product);
         }
 

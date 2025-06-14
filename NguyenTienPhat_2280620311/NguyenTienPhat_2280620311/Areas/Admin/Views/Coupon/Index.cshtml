@@ -1,0 +1,92 @@
+@model IEnumerable<NguyenTienPhat_2280620311.Models.Coupon>
+@{
+    ViewData["Title"] = "Quản lý mã giảm giá";
+}
+
+<h1 class="mt-4">Quản lý mã giảm giá</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item active">Coupon Management</li>
+</ol>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-tags me-1"></i>
+            Danh sách mã giảm giá
+        </div>
+        <a href="/Admin/Coupon/Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Thêm mới
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-info text-center">
+                    <tr>
+                        <th>Mã giảm giá</th>
+                        <th>Tên</th>
+                        <th>Loại giảm giá</th>
+                        <th>Giá trị giảm</th>
+                        <th>Số lượng</th>
+                        <th>Đã dùng</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Ngày kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Code</td>
+                            <td>@item.Name</td>
+                            <td class="text-center">
+                                @if (item.DiscountType == DiscountType.FixedAmount)
+                                {
+                                    <span class="badge bg-primary">Giảm theo số tiền</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">Giảm theo phần trăm</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (item.DiscountType == DiscountType.FixedAmount)
+                                {
+                                    @item.DiscountAmount.ToString("N0") <span>₫</span>
+                                }
+                                else
+                                {
+                                    @item.DiscountAmount.ToString("N1") <span>%</span>
+                                }
+                            </td>
+                            <td class="text-center">@item.Quantity</td>
+                            <td class="text-center">@item.UsedCount</td>
+                            <td class="text-center">@item.StartDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">@item.EndDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Đang hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Đã tắt</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a href="/Admin/Coupon/Edit/@item.Id" class="btn btn-sm btn-info me-1" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="/Admin/Coupon/Delete/@item.Id" class="btn btn-sm btn-danger" title="Xóa">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 

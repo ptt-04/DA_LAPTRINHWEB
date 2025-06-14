@@ -16,5 +16,6 @@ public class ApplicationDbContext : IdentityDbContext <ApplicationUser>
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<CartItemDb> CartItems { get; set; }
+    public DbSet<Coupon> Coupons { get; set; }
 }
 

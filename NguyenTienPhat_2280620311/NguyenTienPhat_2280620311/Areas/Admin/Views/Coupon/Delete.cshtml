@@ -1,0 +1,89 @@
+@model NguyenTienPhat_2280620311.Models.Coupon
+@{
+    ViewData["Title"] = "Xóa mã giảm giá";
+}
+
+<h1 class="mt-4">Xóa mã giảm giá</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a href="/Admin/Coupon">Coupon Management</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-trash-alt me-1"></i>
+                Xác nhận xóa mã giảm giá
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Bạn có chắc chắn muốn xóa mã giảm giá này không?
+                </div>
+
+                <dl class="row">
+                    <dt class="col-sm-4">Mã giảm giá:</dt>
+                    <dd class="col-sm-8">@Model.Code</dd>
+
+                    <dt class="col-sm-4">Tên:</dt>
+                    <dd class="col-sm-8">@Model.Name</dd>
+
+                    <dt class="col-sm-4">Loại giảm giá:</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.DiscountType == DiscountType.FixedAmount)
+                        {
+                            <span class="badge bg-primary">Giảm theo số tiền</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info">Giảm theo phần trăm</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Giá trị giảm:</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.DiscountType == DiscountType.FixedAmount)
+                        {
+                            @Model.DiscountAmount.ToString("N0") <span>₫</span>
+                        }
+                        else
+                        {
+                            @Model.DiscountAmount.ToString("N1") <span>%</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Số lượng còn lại:</dt>
+                    <dd class="col-sm-8">@(Model.Quantity - Model.UsedCount)</dd>
+
+                    <dt class="col-sm-4">Thời gian:</dt>
+                    <dd class="col-sm-8">
+                        @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")
+                    </dd>
+
+                    <dt class="col-sm-4">Trạng thái:</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Đang hoạt động</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Đã tắt</span>
+                        }
+                    </dd>
+                </dl>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Xác nhận xóa
+                    </button>
+                    <a href="/Admin/Coupon" class="btn btn-secondary ms-2">
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -6,6 +6,7 @@ using NguyenTienPhat_2280620311.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using NguyenTienPhat_2280620311.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace NguyenTienPhat_2280620311.Controllers
 {
@@ -32,7 +33,7 @@ namespace NguyenTienPhat_2280620311.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePaymentUrlVnpay(Order order)
+        public async Task<IActionResult> CreatePaymentUrlVnpay(Order order, string couponCode, decimal discountAmount = 0)
         {
             try
             {
@@ -44,6 +45,52 @@ namespace NguyenTienPhat_2280620311.Controllers
                 }
 
                 var totalAmount = cartItems.Sum(i => i.Product.Price * i.Quantity);
+                decimal originalTotal = totalAmount;
+
+                // Xử lý mã giảm giá nếu có
+                if (!string.IsNullOrEmpty(couponCode) && discountAmount > 0)
+                {
+                    var coupon = await _context.Coupons.FirstOrDefaultAsync(c => c.Code == couponCode);
+                    if (coupon != null)
+                    {
+                        if (coupon.IsActive &&
+                            coupon.StartDate <= DateTime.Now &&
+                            coupon.EndDate >= DateTime.Now &&
+                            coupon.UsedCount < coupon.Quantity &&
+                            originalTotal >= coupon.MinimumSpend)
+                        {
+                            decimal calculatedDiscount;
+                            if (coupon.DiscountType == DiscountType.FixedAmount)
+                            {
+                                calculatedDiscount = coupon.DiscountAmount;
+                            }
+                            else
+                            {
+                                calculatedDiscount = (originalTotal * coupon.DiscountAmount) / 100;
+                            }
+                            if (Math.Abs(calculatedDiscount - discountAmount) < 1)
+                            {
+                                // Chỉ cập nhật UsedCount khi callback thành công
+                                totalAmount = originalTotal - discountAmount;
+                                // Lưu couponCode và discountAmount vào session để callback xử lý UsedCount
+                                HttpContext.Session.SetString("CouponCode", couponCode);
+                                HttpContext.Session.SetString("DiscountAmount", discountAmount.ToString());
+                            }
+                            else
+                            {
+                                discountAmount = 0;
+                                totalAmount = originalTotal;
+                                HttpContext.Session.Remove("CouponCode");
+                                HttpContext.Session.Remove("DiscountAmount");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    HttpContext.Session.Remove("CouponCode");
+                    HttpContext.Session.Remove("DiscountAmount");
+                }
 
                 // Gán thông tin sản phẩm vào order
                 order.UserId = userId;
@@ -128,8 +175,15 @@ namespace NguyenTienPhat_2280620311.Controllers
                         // Cập nhật thông tin đơn hàng
                         order.UserId = user.Id;
                         order.OrderDate = DateTime.UtcNow;
-                        order.TotalPrice = totalAmount;
-                        
+                        // Lấy discountAmount và couponCode từ session nếu có
+                        var discountAmountStr = HttpContext.Session.GetString("DiscountAmount");
+                        var couponCode = HttpContext.Session.GetString("CouponCode");
+                        decimal discountAmount = 0;
+                        if (!string.IsNullOrEmpty(discountAmountStr))
+                        {
+                            decimal.TryParse(discountAmountStr, out discountAmount);
+                        }
+                        order.TotalPrice = totalAmount - discountAmount;
                         // Đảm bảo các trường bắt buộc không null
                         if (string.IsNullOrEmpty(order.ShippingAddress))
                         {
@@ -148,6 +202,18 @@ namespace NguyenTienPhat_2280620311.Controllers
                             Price = i.Product.Price
                         }).ToList();
 
+                        // Nếu có mã giảm giá, cập nhật UsedCount
+                        if (!string.IsNullOrEmpty(couponCode) && discountAmount > 0)
+                        {
+                            var coupon = await _context.Coupons.FirstOrDefaultAsync(c => c.Code == couponCode);
+                            if (coupon != null && coupon.IsActive && coupon.UsedCount < coupon.Quantity)
+                            {
+                                coupon.UsedCount++;
+                                coupon.Quantity--;
+                                _context.Coupons.Update(coupon);
+                            }
+                        }
+
                         // Lưu đơn hàng vào database
                         _context.Orders.Add(order);
                         await _context.SaveChangesAsync();
@@ -159,6 +225,8 @@ namespace NguyenTienPhat_2280620311.Controllers
 
                         // Xóa thông tin đơn hàng khỏi Session
                         HttpContext.Session.Remove("PendingOrder");
+                        HttpContext.Session.Remove("CouponCode");
+                        HttpContext.Session.Remove("DiscountAmount");
 
                         // Tạo model cho view thanh toán thành công
                         var paymentDetail = new PaymentDetailModel
@@ -166,7 +234,7 @@ namespace NguyenTienPhat_2280620311.Controllers
                             OrderId = order.Id.ToString(),
                             TransactionId = response.TransactionId,
                             PaymentMethod = response.PaymentMethod,
-                            Amount = (double)totalAmount,
+                            Amount = (double)order.TotalPrice,
                             OrderDescription = response.OrderDescription,
                             CustomerName = user.UserName,
                             PaymentTime = DateTime.Now,

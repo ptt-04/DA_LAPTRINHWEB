@@ -4,6 +4,26 @@
     .css_select_div{ text-align: center;}
     .css_select{ display: inline-table; width: 25%; padding: 5px; margin: 5px 2%; border: solid 1px #d32f2f; border-radius: 5px; background: #fff; color: #222;}
     .css_select:focus { border-color: #b71c1c; outline: none; }
+    .promotion-bar {
+        background: #fffbe6;
+        border-radius: 10px;
+        padding: 12px 14px 8px 14px;
+        box-shadow: 0 2px 8px rgba(255,193,7,0.08);
+        margin-bottom: 8px;
+    }
+    .promo-item {
+        font-weight: 500;
+        font-size: 1rem;
+        border: 1.5px solid #eee;
+        background: #fff;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .promo-yellow { border-color: #ffe082; background: #fffde7; color: #e6a700; }
+    .promo-green { border-color: #b2f2bb; background: #e6ffed; color: #1b8f3b; }
+    .promo-blue { border-color: #90caf9; background: #e3f2fd; color: #1976d2; }
+    .promo-item i { font-size: 1.2rem; }
+    .promo-item:hover, .promo-item.selected { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #d32f2f; }
+    .promo-text { font-size: 1rem; }
 </style>
 @using NguyenTienPhat_2280620311.Extensions
 
@@ -46,7 +66,60 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
-                                    <td class="text-end"><strong>@total.ToString("N0") ₫</strong></td>
+                                    <td class="text-end"><strong id="subtotal">@total.ToString("N0") ₫</strong></td>
+                                </tr>
+                                @if (ViewBag.Coupons != null && ViewBag.Coupons.Count > 0)
+                                {
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="promotion-bar mb-2">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <strong style="font-size:1.05rem;">Chọn mã giảm giá:</strong>
+                                                </div>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach (var c in ViewBag.Coupons)
+                                                    {
+                                                        var icon = c.DiscountType == 0 ? "fa-percent" : "fa-truck";
+                                                        var bg = c.DiscountType == 0 ? "promo-yellow" : "promo-green";
+                                                        if (c.Name.ToLower().Contains("vpbank") || c.Name.ToLower().Contains("bank")) { icon = "fa-credit-card"; bg = "promo-blue"; }
+                                                        <div class="promo-item @bg d-flex align-items-center px-3 py-2 rounded coupon-card" style="min-width:140px; cursor:pointer;" data-code="@c.Code">
+                                                            <i class="fas @icon me-2"></i>
+                                                            <span class="promo-text text-truncate" style="max-width:90px;">
+                                                                @((c.Name.Length > 18) ? (c.Name.Substring(0, Math.Min(17, c.Name.Length)) + "...") : c.Name)
+                                                            </span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td colspan="3" class="text-end">
+                                        <div class="input-group" style="max-width: 300px; margin-left: auto;">
+                                            <select id="couponSelect" class="form-select" style="max-width: 180px;">
+                                                <option value="">-- Chọn mã giảm giá --</option>
+                                                @if (ViewBag.Coupons != null)
+                                                {
+                                                    foreach (var c in ViewBag.Coupons)
+                                                    {
+                                                        <option value="@c.Code">
+                                                            @c.Code - @c.Name (@(c.DiscountType == 0 ? ($"{c.DiscountAmount:N0}₫") : ($"{c.DiscountAmount:N1}%")))
+                                                        </option>
+                                                    }
+                                                }
+                                            </select>
+                                            <input type="text" id="couponCode" class="form-control" placeholder="Nhập mã giảm giá">
+                                            <button class="btn btn-outline-primary" type="button" id="applyCoupon">Áp dụng</button>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <span id="discountAmount" class="text-danger">0 ₫</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Thành tiền:</strong></td>
+                                    <td class="text-end"><strong id="finalPrice">@total.ToString("N0") ₫</strong></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -61,6 +134,8 @@
                 </div>
                 <div class="card-body" style="color: #222;">
                     <form id="checkoutForm" method="post">
+                        <input type="hidden" id="discountAmountInput" name="discountAmount" value="0" />
+                        <input type="hidden" id="couponCodeInput" name="couponCode" value="" />
                         <div class="mb-3">
                             <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
                             <input asp-for="PhoneNumber" class="form-control" required 
@@ -159,6 +234,21 @@
     </div>
 }
 
+<!-- Modal hiển thị chi tiết mã giảm giá -->
+<div class="modal fade" id="couponDetailModal" tabindex="-1" aria-labelledby="couponDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="couponDetailModalLabel">Chi tiết mã giảm giá</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="couponDetailBody">
+        <!-- Nội dung sẽ được render bằng JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
 @section Styles {
     <style>
         .payment-methods .payment-method-item {
@@ -230,8 +320,59 @@
 }
 
 @section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
         $(document).ready(function() {
+            var currentDiscount = 0;
+            var total = @total;
+
+            function formatCurrency(amount) {
+                return amount.toLocaleString('vi-VN') + ' ₫';
+            }
+
+            function updatePrices(couponCode) {
+                $('#discountAmount').text('-' + formatCurrency(currentDiscount));
+                $('#finalPrice').text(formatCurrency(total - currentDiscount));
+                $('#discountAmountInput').val(currentDiscount);
+                $('#couponCodeInput').val(couponCode);
+            }
+
+            $('#applyCoupon').click(function() {
+                var couponCode = $('#couponCode').val();
+                if (!couponCode) {
+                    alert('Vui lòng nhập mã giảm giá!');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/ShoppingCart/ApplyCoupon',
+                    type: 'POST',
+                    data: { code: couponCode },
+                    success: function(response) {
+                        if (response.success) {
+                            if (response.discountType === 0) { // FixedAmount
+                                currentDiscount = response.discountAmount;
+                            } else { // Percentage
+                                currentDiscount = (total * response.discountAmount) / 100;
+                            }
+                            updatePrices(couponCode);
+                            alert('Áp dụng mã giảm giá thành công!');
+                        } else {
+                            alert(response.message);
+                            // Reset mã giảm giá nếu không thành công
+                            currentDiscount = 0;
+                            updatePrices('');
+                        }
+                    },
+                    error: function() {
+                        alert('Có lỗi xảy ra, vui lòng thử lại sau!');
+                        // Reset mã giảm giá nếu có lỗi
+                        currentDiscount = 0;
+                        updatePrices('');
+                    }
+                });
+            });
+
             $('input[name="paymentMethod"]').change(function() {
                 if ($(this).val() === 'vnpay') {
                     $('#codSubmit').hide();
@@ -292,6 +433,39 @@
                         });
                    });   
                 
+                }
+            });
+
+            $('#couponSelect').change(function() {
+                var code = $(this).val();
+                $('#couponCode').val(code);
+            });
+
+            // Chọn mã giảm giá bằng click thẻ
+            $('.coupon-card').click(function() {
+                var code = $(this).data('code');
+                $('#couponCode').val(code);
+                $('#couponSelect').val(code);
+                $('.coupon-card').removeClass('selected');
+                $(this).addClass('selected');
+
+                // Lấy thông tin chi tiết mã giảm giá từ ViewBag.Coupons
+                var coupons = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Coupons));
+                var coupon = coupons.find(c => c.Code === code);
+                if (coupon) {
+                    var html = `<ul class='list-unstyled mb-0'>
+                        <li><b>Mã:</b> ${coupon.Code}</li>
+                        <li><b>Tên:</b> ${coupon.Name}</li>
+                        <li><b>Loại:</b> ${coupon.DiscountType === 0 ? 'Giảm cố định' : 'Giảm phần trăm'}</li>
+                        <li><b>Giá trị:</b> ${coupon.DiscountType === 0 ? coupon.DiscountAmount.toLocaleString('vi-VN') + '₫' : coupon.DiscountAmount + '%'}</li>
+                        <li><b>Còn lại:</b> ${coupon.Quantity}</li>
+                        <li><b>Đơn tối thiểu:</b> ${coupon.MinimumSpend.toLocaleString('vi-VN')}₫</li>
+                        <li><b>HSD:</b> ${new Date(coupon.EndDate).toLocaleDateString('vi-VN')}</li>
+                        <li><b>Mô tả:</b> ${coupon.Description || ''}</li>
+                    </ul>`;
+                    $('#couponDetailBody').html(html);
+                    var modal = new bootstrap.Modal(document.getElementById('couponDetailModal'));
+                    modal.show();
                 }
             });
          });    

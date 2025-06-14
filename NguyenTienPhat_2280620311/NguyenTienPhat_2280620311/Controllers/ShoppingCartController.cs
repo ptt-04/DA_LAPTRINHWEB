@@ -5,6 +5,7 @@ using NguyenTienPhat_2280620311.Extensions;
 using NguyenTienPhat_2280620311.Models;
 using NguyenTienPhat_2280620311.Repositories;
 using NguyenTienPhat_2280620311.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace NguyenTienPhat_2280620311.Controllers
 {
@@ -138,11 +139,77 @@ namespace NguyenTienPhat_2280620311.Controllers
             var cartItems = await _cartService.GetCartItemsAsync(userId);
             var order = new Order();
             ViewBag.CartItems = cartItems;
+
+            // Lấy danh sách mã giảm giá còn hiệu lực, còn số lượng, đang hoạt động
+            var now = DateTime.Now;
+            var coupons = await _context.Coupons
+                .Where(c => c.IsActive && c.Quantity > 0 && c.StartDate <= now && c.EndDate >= now)
+                .ToListAsync();
+            ViewBag.Coupons = coupons;
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                ViewBag.CurrentUser = currentUser;
+            }
             return View(order);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Checkout(Order order)
+        public async Task<IActionResult> ApplyCoupon(string code)
+        {
+            var coupon = await _context.Coupons.FirstOrDefaultAsync(c => c.Code == code);
+            
+            if (coupon == null)
+            {
+                return Json(new { success = false, message = "Mã giảm giá không tồn tại!" });
+            }
+
+            if (!coupon.IsActive)
+            {
+                return Json(new { success = false, message = "Mã giảm giá đã hết hạn!" });
+            }
+
+            if (coupon.StartDate > DateTime.Now)
+            {
+                return Json(new { success = false, message = "Mã giảm giá chưa có hiệu lực!" });
+            }
+
+            if (coupon.EndDate < DateTime.Now)
+            {
+                return Json(new { success = false, message = "Mã giảm giá đã hết hạn!" });
+            }
+
+            if (coupon.UsedCount >= coupon.Quantity)
+            {
+                return Json(new { success = false, message = "Mã giảm giá đã hết lượt sử dụng!" });
+            }
+
+            var userId = _userManager.GetUserId(User);
+            var cartItems = await _cartService.GetCartItemsAsync(userId);
+            var total = cartItems.Sum(i => i.Product.Price * i.Quantity);
+
+            if (total < coupon.MinimumSpend)
+            {
+                return Json(new { 
+                    success = false, 
+                    message = $"Đơn hàng tối thiểu {coupon.MinimumSpend.ToString("N0")}₫ để sử dụng mã này!" 
+                });
+            }
+
+            // Tăng số lượt sử dụng
+            coupon.UsedCount++;
+            await _context.SaveChangesAsync();
+
+            return Json(new { 
+                success = true, 
+                discountType = coupon.DiscountType,
+                discountAmount = coupon.DiscountAmount
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Checkout(Order order, string couponCode, decimal discountAmount = 0)
         {
             var userId = _userManager.GetUserId(User);
             var cartItems = await _cartService.GetCartItemsAsync(userId);
@@ -152,9 +219,59 @@ namespace NguyenTienPhat_2280620311.Controllers
                 return RedirectToAction("Index");
             }
 
+            // Tính tổng tiền gốc
+            decimal originalTotal = cartItems.Sum(i => i.Product.Price * i.Quantity);
+
+            // Xử lý mã giảm giá nếu có
+            if (!string.IsNullOrEmpty(couponCode) && discountAmount > 0)
+            {
+                var coupon = await _context.Coupons.FirstOrDefaultAsync(c => c.Code == couponCode);
+                if (coupon != null)
+                {
+                    // Kiểm tra lại tính hợp lệ của mã giảm giá
+                    if (coupon.IsActive && 
+                        coupon.StartDate <= DateTime.Now && 
+                        coupon.EndDate >= DateTime.Now && 
+                        coupon.UsedCount < coupon.Quantity && 
+                        originalTotal >= coupon.MinimumSpend)
+                    {
+                        // Tính lại số tiền giảm để đảm bảo chính xác
+                        decimal calculatedDiscount;
+                        if (coupon.DiscountType == DiscountType.FixedAmount)
+                        {
+                            calculatedDiscount = coupon.DiscountAmount;
+                        }
+                        else
+                        {
+                            calculatedDiscount = (originalTotal * coupon.DiscountAmount) / 100;
+                        }
+
+                        // Kiểm tra xem số tiền giảm có khớp với client gửi lên
+                        if (Math.Abs(calculatedDiscount - discountAmount) < 1) // Cho phép sai số 1 đồng
+                        {
+                            // Cập nhật số lượt sử dụng của mã giảm giá
+                            coupon.UsedCount++;
+                            coupon.Quantity--;
+                            _context.Coupons.Update(coupon);
+                        }
+                        else
+                        {
+                            // Nếu số tiền giảm không khớp, không áp dụng giảm giá
+                            discountAmount = 0;
+                        }
+                    }
+                    else
+                    {
+                        // Nếu mã không còn hợp lệ, không áp dụng giảm giá
+                        discountAmount = 0;
+                    }
+                }
+            }
+
+            // Tạo đơn hàng với giá đã giảm
             order.UserId = userId;
             order.OrderDate = DateTime.UtcNow;
-            order.TotalPrice = cartItems.Sum(i => i.Product.Price * i.Quantity);
+            order.TotalPrice = originalTotal - discountAmount;
             order.OrderDetails = cartItems.Select(i => new OrderDetail
             {
                 ProductId = i.ProductId,
