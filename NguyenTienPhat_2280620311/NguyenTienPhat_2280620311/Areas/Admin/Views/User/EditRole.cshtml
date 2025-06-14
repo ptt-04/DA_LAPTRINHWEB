@@ -1,0 +1,51 @@
+@model NguyenTienPhat_2280620311.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Phân quyền tài khoản";
+    var allRoles = ViewBag.AllRoles as List<string>;
+    var userRoles = ViewBag.UserRoles as IEnumerable<string>;
+}
+<h1 class="mt-4">Phân quyền tài khoản</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a href="/Admin/User">User Management</a></li>
+    <li class="breadcrumb-item active">Edit Role</li>
+</ol>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-shield me-1"></i> Phân quyền tài khoản
+            </div>
+            <div class="card-body">
+                <form asp-action="EditRole" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label class="form-label">User Name</label>
+                        <input type="text" class="form-control" value="@Model.UserName" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="@Model.Email" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vai trò</label>
+                        <select name="role" class="form-select" required>
+                            @foreach (var role in allRoles)
+                            {
+                                if (userRoles.Contains(role))
+                                {
+                                    <option value="@role" selected="selected">@role</option>
+                                }
+                                else
+                                {
+                                    <option value="@role">@role</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    <a href="/Admin/User" class="btn btn-secondary ms-2">Quay lại</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

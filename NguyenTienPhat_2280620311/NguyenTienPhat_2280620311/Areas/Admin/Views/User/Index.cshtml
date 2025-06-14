@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+    var users = ViewBag.Users;
+}
+<h1 class="mt-4">Quản lý tài khoản</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item active">User Management</li>
+</ol>
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-users me-1"></i>
+        Danh sách tài khoản
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center">
+                <thead class="table-info">
+                    <tr>
+                        <th>#</th>
+                        <th>User Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var user in users)
+                {
+                    <tr>
+                        <td>@user.Id</td>
+                        <td>@user.UserName</td>
+                        <td>@user.Email</td>
+                        <td>
+                            <span class="badge bg-primary">@user.Role</span>
+                        </td>
+                        <td>
+                            @if (user.Status == "Active")
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Locked</span>
+                            }
+                        </td>
+                        <td>
+                            <a href="/Admin/User/Edit/@user.Id" class="btn btn-sm btn-info me-1" title="Edit"><i class="fas fa-edit"></i></a>
+                            <a href="/Admin/User/EditRole/@user.Id" class="btn btn-sm btn-warning me-1" title="Phân quyền"><i class="fas fa-user-shield"></i></a>
+                            <a href="/Admin/User/Delete/@user.Id" class="btn btn-sm btn-danger" title="Delete"><i class="fas fa-trash-alt"></i></a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 

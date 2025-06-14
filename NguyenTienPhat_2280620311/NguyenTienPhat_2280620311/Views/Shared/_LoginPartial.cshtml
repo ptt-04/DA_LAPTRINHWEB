@@ -6,11 +6,22 @@
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
+    var user = await UserManager.GetUserAsync(User);
+    var isAdmin = user != null && await UserManager.IsInRoleAsync(user, "Admin");
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
             <i class="fas fa-user me-1"></i>@User.Identity?.Name
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
+            @if (isAdmin)
+            {
+                <li>
+                    <a class="dropdown-item" href="/Admin/Home/Index">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            }
             <li>
                 <a class="dropdown-item" asp-controller="OrderHistory" asp-action="Index">
                     <i class="fas fa-history me-2"></i>Lịch sử đơn hàng

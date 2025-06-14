@@ -1,0 +1,31 @@
+@model NguyenTienPhat_2280620311.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Xóa tài khoản";
+}
+<h1 class="mt-4">Xóa tài khoản</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a href="/Admin/User">User Management</a></li>
+    <li class="breadcrumb-item active">Delete</li>
+</ol>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-user-times me-1"></i> Xác nhận xóa tài khoản
+            </div>
+            <div class="card-body">
+                <p>Bạn có chắc chắn muốn xóa tài khoản sau không?</p>
+                <ul>
+                    <li><b>User Name:</b> @Model.UserName</li>
+                    <li><b>Email:</b> @Model.Email</li>
+                    <li><b>Role:</b> @ViewBag.Role</li>
+                </ul>
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                    <a href="/Admin/User" class="btn btn-secondary ms-2">Hủy</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,42 @@
+@model IEnumerable<NguyenTienPhat_2280620311.Models.Category>
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+}
+<h1 class="mt-4">Quản lý danh mục sản phẩm</h1>
+<ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item active">Category Management</li>
+</ol>
+<div class="mb-3">
+    <a href="/Admin/Category/Create" class="btn btn-success"><i class="fas fa-plus me-1"></i>Thêm danh mục</a>
+</div>
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-list me-1"></i> Danh sách danh mục
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle text-center">
+                <thead class="table-info">
+                    <tr>
+                        <th>#</th>
+                        <th>Tên danh mục</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.Name</td>
+                        <td>
+                            <a href="/Admin/Category/Edit/@item.Id" class="btn btn-sm btn-info me-1" title="Sửa"><i class="fas fa-edit"></i></a>
+                            <a href="/Admin/Category/Delete/@item.Id" class="btn btn-sm btn-danger" title="Xóa"><i class="fas fa-trash-alt"></i></a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 
