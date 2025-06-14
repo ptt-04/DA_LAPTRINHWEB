@@ -13,6 +13,7 @@
                 <div class="col-md-6">
                     <h5 class="text-muted mb-3">Thông tin đơn hàng</h5>
                     <p><strong>Mã đơn hàng:</strong> #@Model.Id</p>
+                    <p><strong>Người đặt:</strong> @Model.ApplicationUser.FullName</p>
                     <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
                     <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("#,##0") ₫</p>
                 </div>

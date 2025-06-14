@@ -29,6 +29,7 @@ namespace NguyenTienPhat_2280620311.Controllers
             var orders = await _context.Orders
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
+                .Include(o => o.ApplicationUser)
                 .Where(o => o.UserId == user.Id)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
@@ -47,6 +48,7 @@ namespace NguyenTienPhat_2280620311.Controllers
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
+                .Include(o => o.ApplicationUser)
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == user.Id);
 
             if (order == null)
