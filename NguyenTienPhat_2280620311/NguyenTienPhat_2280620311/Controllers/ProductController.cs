@@ -67,5 +67,21 @@ namespace NguyenTienPhat_2280620311.Controllers
             }
             return View(product);
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Suggest(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q))
+                return Json(new List<object>());
+            var products = await _productRepository.SearchByNameAsync(q, 5);
+            var result = products.Select(p => new {
+                id = p.Id,
+                name = p.Name,
+                image = p.ImageUrl,
+                price = p.Price
+            });
+            return Json(result);
+        }
     }
 } 

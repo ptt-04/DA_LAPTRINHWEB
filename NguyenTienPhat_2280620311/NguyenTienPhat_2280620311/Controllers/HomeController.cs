@@ -14,7 +14,7 @@ namespace NguyenTienPhat_2280620311.Controllers
             _productRepository = productRepository;
         }
 
-        // Hi?n th? danh sách s?n ph?m
+        // Hi?n th? danh sï¿½ch s?n ph?m
         public async Task<IActionResult> Index()
         {
             var products = await _productRepository.GetAllAsync();

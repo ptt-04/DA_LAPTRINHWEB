@@ -45,5 +45,14 @@ namespace NguyenTienPhat_2280620311.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public async Task<IEnumerable<Product>> SearchByNameAsync(string keyword, int limit = 5)
+        {
+            return await _context.Products
+                .Where(p => p.Name.Contains(keyword))
+                .OrderBy(p => p.Name)
+                .Take(limit)
+                .ToListAsync();
+        }
     }
 }

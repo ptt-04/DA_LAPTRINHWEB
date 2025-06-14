@@ -24,6 +24,7 @@
                         <thead>
                             <tr>
                                 <th>Mã đơn hàng</th>
+                                <th>Người đặt</th>
                                 <th>Ngày đặt</th>
                                 <th>Địa chỉ giao hàng</th>
                                 <th class="text-end">Tổng tiền</th>
@@ -35,6 +36,7 @@
                             {
                                 <tr>
                                     <td>#@order.Id</td>
+                                    <td>@order.ApplicationUser.FullName</td>
                                     <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td>@order.ShippingAddress</td>
                                     <td class="text-end">@order.TotalPrice.ToString("#,##0") ₫</td>

@@ -66,6 +66,7 @@
             border-radius: 50px;
             overflow: hidden;
             background: rgba(255,255,255,0.1);
+            position: relative;
         }
 
         .search-box input {
@@ -478,6 +479,47 @@
             padding: 0 6px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        /* Thêm style cho danh sách gợi ý */
+        #search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            margin-top: 2px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1050;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #search-suggestions .list-group-item {
+            border-left: none;
+            border-right: none;
+            padding: 8px 15px;
+        }
+        #search-suggestions .list-group-item:first-child {
+            border-top: none;
+        }
+        #search-suggestions .list-group-item:last-child {
+            border-bottom: none;
+        }
+        #search-suggestions img {
+            border-radius: 4px;
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+        }
+        #search-suggestions .product-info {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+        #search-suggestions .product-price {
+            color: #e60012;
+            font-weight: 500;
+            margin-top: 4px;
+        }
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -496,13 +538,14 @@
                 <div class="header-search flex-grow-1 px-3">
                     <form class="w-100" method="get" asp-controller="Product" asp-action="Index">
                         <div class="input-group search-box">
-                            <input type="search" name="searchTerm" class="form-control" placeholder="Tìm kiếm sản phẩm..." 
+                            <input type="search" name="searchTerm" id="main-search-box" class="form-control" placeholder="Tìm kiếm sản phẩm..." 
                                    value="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Product" ? ViewBag.SearchTerm : "")"
-                                   aria-label="Tìm kiếm">
+                                   aria-label="Tìm kiếm" autocomplete="off">
                             <button class="btn search-btn" type="submit">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
+                        <div id="search-suggestions" class="list-group shadow-sm" style="display:none;"></div>
                     </form>
                 </div>
                 <!-- Menu -->
@@ -627,6 +670,51 @@
         }
         // Khởi tạo ban đầu với tiếng Việt
         initWeglot('vi');
+
+        // Gợi ý tìm kiếm sản phẩm
+        $(function() {
+            var $input = $('#main-search-box');
+            var $suggest = $('#search-suggestions');
+            var debounceTimer;
+            $input.on('input', function() {
+                clearTimeout(debounceTimer);
+                var q = $(this).val();
+                if (!q) {
+                    $suggest.hide();
+                    return;
+                }
+                debounceTimer = setTimeout(function() {
+                    $.get('/Product/Suggest?q=' + encodeURIComponent(q), function(data) {
+                        if (data && data.length > 0) {
+                            var html = data.map(function(p) {
+                                return `<a href='/Product/Details/${p.id}' class='list-group-item list-group-item-action d-flex align-items-center'>
+                                    <img src='${p.image || "/images/default-product.png"}' alt='' style='width:50px;height:50px;object-fit:cover;'>
+                                    <div class='product-info'>
+                                        <div class='product-name'>${p.name}</div>
+                                        <div class='product-price'>${p.price.toLocaleString('vi-VN')} đ</div>
+                                    </div>
+                                </a>`;
+                            }).join('');
+                            $suggest.html(html).show();
+                        } else {
+                            $suggest.hide();
+                        }
+                    });
+                }, 300);
+            });
+            
+            // Đóng gợi ý khi click ra ngoài
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.search-box').length) {
+                    $suggest.hide();
+                }
+            });
+            
+            // Hiện lại gợi ý khi focus vào ô tìm kiếm
+            $input.on('focus', function() {
+                if ($suggest.children().length > 0) $suggest.show();
+            });
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

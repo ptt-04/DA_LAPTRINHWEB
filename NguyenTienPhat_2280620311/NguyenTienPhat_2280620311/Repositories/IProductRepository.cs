@@ -10,5 +10,6 @@ namespace NguyenTienPhat_2280620311.Repositories
         Task UpdateAsync(Product product);
         Task DeleteAsync(int id);
         object GetById(int productId);
+        Task<IEnumerable<Product>> SearchByNameAsync(string keyword, int limit = 5);
     }
 }
