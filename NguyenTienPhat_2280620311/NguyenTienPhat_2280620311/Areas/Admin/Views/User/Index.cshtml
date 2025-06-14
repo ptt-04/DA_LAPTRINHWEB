@@ -16,9 +16,10 @@
             <table class="table table-bordered table-hover align-middle text-center">
                 <thead class="table-info">
                     <tr>
-                        <th>#</th>
+                        <th>Họ và tên</th>
                         <th>User Name</th>
                         <th>Email</th>
+                        <th>Số điện thoại</th>
                         <th>Role</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -28,9 +29,10 @@
                 @foreach (var user in users)
                 {
                     <tr>
-                        <td>@user.Id</td>
+                        <td>@user.FullName</td>
                         <td>@user.UserName</td>
                         <td>@user.Email</td>
+                        <td>@(string.IsNullOrEmpty(user.PhoneNumber) ? "Chưa cập nhật" : user.PhoneNumber)</td>
                         <td>
                             <span class="badge bg-primary">@user.Role</span>
                         </td>

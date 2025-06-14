@@ -1,67 +1,175 @@
 @model IEnumerable<Order>
 
 <div class="container mt-4">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">Lịch sử đơn hàng</h3>
-        </div>
-        <div class="card-body">
             @if (!Model.Any())
             {
                 <div class="text-center py-4">
-                    <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+            <i class="fas fa-shopping-bag fa-3x text-shopee mb-3"></i>
                     <h4>Bạn chưa có đơn hàng nào</h4>
                     <p class="text-muted">Hãy mua sắm để có đơn hàng đầu tiên nhé!</p>
-                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-shopee">
                         <i class="fas fa-shopping-cart me-2"></i>Mua sắm ngay
                     </a>
                 </div>
             }
             else
             {
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Mã đơn hàng</th>
-                                <th>Người đặt</th>
-                                <th>Ngày đặt</th>
-                                <th>Địa chỉ giao hàng</th>
-                                <th class="text-end">Tổng tiền</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
+        <div class="orders-container">
                             @foreach (var order in Model)
                             {
-                                <tr>
-                                    <td>#@order.Id</td>
-                                    <td>@order.ApplicationUser.FullName</td>
-                                    <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@order.ShippingAddress</td>
-                                    <td class="text-end">@order.TotalPrice.ToString("#,##0") ₫</td>
-                                    <td class="text-end">
-                                        <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-eye me-1"></i>Chi tiết
-                                        </a>
-                                    </td>
-                                </tr>
+                var firstOrderDetail = order.OrderDetails?.FirstOrDefault();
+                
+                <div class="card mb-3 order-card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2" style="border-bottom: 1px solid #efefef;">
+                        <div>
+                            <i class="fas fa-store text-shopee me-2"></i>
+                            <span class="fw-bold">Đơn hàng #@order.Id</span>
+                        </div>
+                        <div>
+                                        @{
+                                            string statusVN = order.Status switch
+                                            {
+                                                OrderStatus.ChoXuLy => "Chờ xử lí",
+                                                OrderStatus.DangXuLy => "Đang xử lí",
+                                                OrderStatus.HoanThanh => "Hoàn thành",
+                                                _ => "Không xác định"
+                                            };
+                                string statusClass = order.Status switch
+                                {
+                                    OrderStatus.ChoXuLy => "status-pending",
+                                    OrderStatus.DangXuLy => "status-processing",
+                                    OrderStatus.HoanThanh => "status-completed",
+                                    _ => "text-muted"
+                                };
                             }
-                        </tbody>
-                    </table>
+                            <span class="@statusClass fw-bold">@statusVN</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                @if (firstOrderDetail?.Product != null)
+                                {
+                                    <div class="position-relative">
+                                        @if (!string.IsNullOrEmpty(firstOrderDetail.Product.ImageUrl))
+                                        {
+                                            <img src="@firstOrderDetail.Product.ImageUrl" 
+                                                 alt="@firstOrderDetail.Product.Name" 
+                                                 class="img-fluid rounded product-img">
+                                            @if (order.OrderDetails.Count > 1)
+                                            {
+                                                <span class="position-absolute bottom-0 end-0 bg-light rounded-pill px-2 py-1 small">
+                                                    <small class="text-shopee">+@(order.OrderDetails.Count - 1) sản phẩm khác</small>
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <img src="~/images/default-product.png" 
+                                                 alt="No Image" 
+                                                 class="img-fluid rounded product-img">
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                <div class="order-info mb-3">
+                                    <p class="mb-1"><small class="text-muted">Ngày đặt:</small> @order.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                    <p class="mb-1"><small class="text-muted">Người nhận:</small> @order.ApplicationUser.FullName</p>
+                                    <p class="mb-0"><small class="text-muted">Địa chỉ:</small> @order.ShippingAddress</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="total-price mb-3">
+                                    <small class="text-muted">Tổng tiền:</small>
+                                    <div class="h5 text-shopee mb-0">@order.TotalPrice.ToString("#,##0") ₫</div>
+                                </div>
+                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-outline-shopee btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                        </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
-    </div>
+    }
 </div>
 
 @section Styles {
     <style>
-        .table th {
-            background-color: #f8f9fa;
+        :root {
+            --shopee-color: #ee4d2d;
+            --status-pending: #ffeaa7;
+            --status-processing: #fdcb6e;
+            --status-completed: #00b894;
         }
-        .table td {
-            vertical-align: middle;
+        .order-card {
+            border: 1px solid #efefef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .order-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: var(--shopee-color);
+        }
+        .card-header {
+            background-color: #fff !important;
+        }
+        .text-shopee {
+            color: var(--shopee-color) !important;
+        }
+        .btn-shopee {
+            background-color: var(--shopee-color);
+            border-color: var(--shopee-color);
+            color: #fff;
+        }
+        .btn-shopee:hover {
+            background-color: #d73211;
+            border-color: #d73211;
+            color: #fff;
+        }
+        .btn-outline-shopee {
+            border-color: var(--shopee-color);
+            color: var(--shopee-color);
+        }
+        .btn-outline-shopee:hover {
+            background-color: var(--shopee-color);
+            border-color: var(--shopee-color);
+            color: #fff;
+        }
+        .product-img {
+            width: 100%;
+            height: 100px;
+            object-fit: contain;
+            background-color: #fff;
+            padding: 5px;
+        }
+        .position-relative {
+            border: 1px solid #efefef;
+            border-radius: 4px;
+            padding: 5px;
+        }
+        .status-pending {
+            color: #b7791f;
+            background-color: var(--status-pending);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .status-processing {
+            color: #975a16;
+            background-color: var(--status-processing);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .status-completed {
+            color: white;
+            background-color: var(--status-completed);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
     </style>
 } 

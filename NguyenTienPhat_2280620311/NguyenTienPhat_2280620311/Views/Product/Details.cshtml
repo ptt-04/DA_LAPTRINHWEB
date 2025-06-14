@@ -325,18 +325,20 @@
                 <div class="product-image-section">
                     <img src="@Model.ImageUrl"
                          alt="@Model.Name"
-                         class="img-fluid rounded mb-4 product-image"
+                         class="img-fluid rounded mb-4 product-image @(!Model.IsInStock ? "out-of-stock" : "")"
                          id="mainImage" />
 
                     <div class="d-flex justify-content-between mb-4">
                         <img src="@Model.ImageUrl"
                              alt="Thumbnail 1"
-                             class="thumbnail active"
+                             class="thumbnail active @(!Model.IsInStock ? "out-of-stock" : "")"
                              onclick="changeImage(event, this.src)" />
                         <!-- Có thể thêm nhiều thumbnail khác nếu có -->
                     </div>
 
                     <div class="d-flex gap-2 mb-4">
+                        @if (Model.IsInStock)
+                        {
                         <form id="addToCartForm" method="post" action="/ShoppingCart/AddToCart" class="flex-grow-1">
                             <input type="hidden" name="productId" value="@Model.Id" />
                             <input type="hidden" name="quantity" id="cartQuantity" value="1" />
@@ -349,6 +351,13 @@
                                 <i class="bi bi-lightning-fill me-2"></i>Mua ngay
                             </button>
                         </form>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger w-100 text-center">
+                                <i class="bi bi-exclamation-circle me-2"></i>Sản phẩm đã hết hàng
+                            </div>
+                        }
                     </div>
                     <div id="addToCartMessage"></div>
 
@@ -369,6 +378,10 @@
                 <h1 class="product-title">@Model.Name</h1>
                 <div class="price-section">
                     <span class="current-price me-2">@Model.Price.ToString("N0")đ</span>
+                    @if (!Model.IsInStock)
+                    {
+                        <span class="badge bg-danger">Hết hàng</span>
+                    }
                 </div>
                 <div class="product-description p-4 bg-light rounded shadow-sm collapsed">
                     <div class="description-content">

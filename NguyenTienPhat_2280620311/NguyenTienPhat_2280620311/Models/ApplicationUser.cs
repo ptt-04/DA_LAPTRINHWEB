@@ -9,5 +9,9 @@ namespace NguyenTienPhat_2280620311.Models
         public string FullName { get; set; }
         public string? Address { get; set; }
         public string? Age { get; set; }
+
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [Display(Name = "Số điện thoại")]
+        public override string? PhoneNumber { get; set; }
     }
 }

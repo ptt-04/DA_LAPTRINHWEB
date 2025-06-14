@@ -216,5 +216,27 @@ namespace NguyenTienPhat_2280620311.Areas.Admin.Controllers
             await _productRepository.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateStockStatus(int id, bool isInStock)
+        {
+            try
+            {
+                var product = await _productRepository.GetByIdAsync(id);
+                if (product == null)
+                {
+                    return Json(new { success = false });
+                }
+
+                product.IsInStock = isInStock;
+                await _productRepository.UpdateAsync(product);
+
+                return Json(new { success = true });
+            }
+            catch
+            {
+                return Json(new { success = false });
+            }
+        }
     }
 }

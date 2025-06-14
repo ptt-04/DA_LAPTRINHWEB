@@ -42,7 +42,8 @@ namespace NguyenTienPhat_2280620311.Controllers
                     Name = item.Product.Name,
                     Price = item.Product.Price,
                     Quantity = item.Quantity,
-                    ImageUrl = item.Product.ImageUrl
+                    ImageUrl = item.Product.ImageUrl,
+                    IsInStock = item.Product.IsInStock
                 });
             }
             
@@ -89,17 +90,53 @@ namespace NguyenTienPhat_2280620311.Controllers
 
         public async Task<IActionResult> AddToCart(int productId, int quantity)
         {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra trạng thái hàng
+            if (!product.IsInStock)
+            {
+                TempData["Error"] = "Sản phẩm này đã hết hàng!";
+                return RedirectToAction("Index", "Product");
+            }
+
             var userId = _userManager.GetUserId(User);
             await _cartService.AddToCartAsync(userId, productId, quantity);
-            return RedirectToAction("Index");
+
+            // Thông báo thành công
+            TempData["Success"] = "Đã thêm sản phẩm vào giỏ hàng!";
+            return RedirectToAction("Index", "Product");
+        }
+
+        private async Task<List<CartItemDb>> GetOutOfStockItems(string userId)
+        {
+            var cartItems = await _cartService.GetCartItemsAsync(userId);
+            return cartItems.Where(item => !item.Product.IsInStock).ToList();
         }
 
         public async Task<IActionResult> Checkout()
         {
             var userId = _userManager.GetUserId(User);
+            var outOfStockItems = await GetOutOfStockItems(userId);
+
+            if (outOfStockItems.Any())
+            {
+                // Tạo thông báo về các sản phẩm hết hàng
+                var outOfStockMessage = "Vui lòng xóa các sản phẩm hết hàng sau khỏi giỏ hàng trước khi thanh toán:\n";
+                foreach (var item in outOfStockItems)
+                {
+                    outOfStockMessage += $"- {item.Product.Name}\n";
+                }
+
+                TempData["OutOfStockError"] = outOfStockMessage;
+                return RedirectToAction("Index");
+            }
+
             var cartItems = await _cartService.GetCartItemsAsync(userId);
             var order = new Order();
-            // Gán tạm danh sách sản phẩm vào ViewBag để View dùng
             ViewBag.CartItems = cartItems;
             return View(order);
         }

@@ -520,6 +520,77 @@
             font-weight: 500;
             margin-top: 4px;
         }
+        #search-suggestions .out-of-stock {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        #search-suggestions .badge {
+            font-size: 0.75rem;
+            padding: 0.25em 0.5em;
+        }
+        .search-container {
+            max-width: 600px;
+            min-width: 300px;
+        }
+        .input-group {
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #searchInput {
+            border: 1px solid #e0e0e0;
+            border-right: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.95rem;
+        }
+        #searchInput:focus {
+            box-shadow: none;
+            border-color: var(--primary-color);
+        }
+        .btn-search {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .btn-search:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        #search-suggestions {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        #search-suggestions::-webkit-scrollbar {
+            width: 6px;
+        }
+        #search-suggestions::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        #search-suggestions::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        #search-suggestions::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        #search-suggestions .list-group-item {
+            border: none;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 0.8rem 1rem;
+        }
+        #search-suggestions .list-group-item:last-child {
+            border-bottom: none;
+        }
+        #search-suggestions .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -535,18 +606,15 @@
                     </a>
                 </div>
                 <!-- Search -->
-                <div class="header-search flex-grow-1 px-3">
-                    <form class="w-100" method="get" asp-controller="Product" asp-action="Index">
-                        <div class="input-group search-box">
-                            <input type="search" name="searchTerm" id="main-search-box" class="form-control" placeholder="Tìm kiếm sản phẩm..." 
-                                   value="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Product" ? ViewBag.SearchTerm : "")"
-                                   aria-label="Tìm kiếm" autocomplete="off">
-                            <button class="btn search-btn" type="submit">
+                <div class="search-container position-relative flex-grow-1 mx-4">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm sản phẩm...">
+                        <button class="btn btn-search" type="button" onclick="submitSearch()">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
-                        <div id="search-suggestions" class="list-group shadow-sm" style="display:none;"></div>
-                    </form>
+                    <div id="search-suggestions" class="position-absolute w-100 mt-1 d-none">
+                    </div>
                 </div>
                 <!-- Menu -->
                 <div class="header-menu d-flex align-items-center flex-shrink-0 gap-2" style="min-width:420px;">
@@ -671,49 +739,81 @@
         // Khởi tạo ban đầu với tiếng Việt
         initWeglot('vi');
 
-        // Gợi ý tìm kiếm sản phẩm
-        $(function() {
-            var $input = $('#main-search-box');
-            var $suggest = $('#search-suggestions');
-            var debounceTimer;
-            $input.on('input', function() {
+        let debounceTimer;
+        const searchInput = document.getElementById('searchInput');
+        const searchSuggestions = document.getElementById('search-suggestions');
+
+        // Xử lý tìm kiếm khi nhấn nút tìm kiếm
+        function submitSearch() {
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                window.location.href = `/Product/Index?searchTerm=${encodeURIComponent(searchTerm)}`;
+            }
+        }
+
+        // Xử lý tìm kiếm khi nhấn Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitSearch();
+            }
+        });
+
+        // Xử lý gợi ý tìm kiếm
+        searchInput.addEventListener('input', function() {
                 clearTimeout(debounceTimer);
-                var q = $(this).val();
-                if (!q) {
-                    $suggest.hide();
+            const q = this.value.trim();
+
+            if (q.length === 0) {
+                searchSuggestions.classList.add('d-none');
+                searchSuggestions.innerHTML = '';
                     return;
                 }
+
                 debounceTimer = setTimeout(function() {
-                    $.get('/Product/Suggest?q=' + encodeURIComponent(q), function(data) {
+                fetch(`/Product/Suggest?q=${encodeURIComponent(q)}`)
+                    .then(response => response.json())
+                    .then(data => {
                         if (data && data.length > 0) {
-                            var html = data.map(function(p) {
-                                return `<a href='/Product/Details/${p.id}' class='list-group-item list-group-item-action d-flex align-items-center'>
-                                    <img src='${p.image || "/images/default-product.png"}' alt='' style='width:50px;height:50px;object-fit:cover;'>
-                                    <div class='product-info'>
-                                        <div class='product-name'>${p.name}</div>
-                                        <div class='product-price'>${p.price.toLocaleString('vi-VN')} đ</div>
+                            const html = data.map(p => {
+                                const outOfStockClass = !p.isInStock ? 'out-of-stock' : '';
+                                const outOfStockBadge = !p.isInStock ? '<span class="badge bg-danger ms-2">Hết hàng</span>' : '';
+                                return `
+                                    <a href="/Product/Details/${p.id}" class="list-group-item list-group-item-action d-flex align-items-center">
+                                        <img src="${p.image || '/images/default-product.png'}" 
+                                             class="${outOfStockClass}" 
+                                             alt="${p.name}"
+                                             style="width:50px;height:50px;object-fit:cover;">
+                                        <div class="ms-3 flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">${p.name}</h6>
+                                                ${outOfStockBadge}
+                                            </div>
+                                            <div class="product-price">${p.price.toLocaleString('vi-VN')}đ</div>
                                     </div>
                                 </a>`;
                             }).join('');
-                            $suggest.html(html).show();
+                            
+                            searchSuggestions.innerHTML = `<div class="list-group shadow">${html}</div>`;
+                            searchSuggestions.classList.remove('d-none');
                         } else {
-                            $suggest.hide();
+                            searchSuggestions.innerHTML = `
+                                <div class="list-group shadow">
+                                    <div class="list-group-item text-center text-muted">
+                                        Không tìm thấy sản phẩm
+                                    </div>
+                                </div>`;
+                            searchSuggestions.classList.remove('d-none');
                         }
                     });
                 }, 300);
             });
             
-            // Đóng gợi ý khi click ra ngoài
-            $(document).on('click', function(e) {
-                if (!$(e.target).closest('.search-box').length) {
-                    $suggest.hide();
-                }
-            });
-            
-            // Hiện lại gợi ý khi focus vào ô tìm kiếm
-            $input.on('focus', function() {
-                if ($suggest.children().length > 0) $suggest.show();
-            });
+        // Ẩn gợi ý khi click ra ngoài
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.add('d-none');
+            }
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)

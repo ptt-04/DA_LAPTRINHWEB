@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<NguyenTienPhat_2280620311.Models.Product>
 @{
     ViewData["Title"] = "Quản Lý Sản Phẩm";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 }
 
 <!-- DataTables CSS -->
@@ -32,7 +32,7 @@
             <div class="card text-center border-danger">
                 <div class="card-body">
                     <h6 class="card-title text-danger">Sản phẩm hết hàng</h6>
-                    <p class="display-6 fw-bold">@ViewBag.OutOfStockProducts</p>
+                    <p class="display-6 fw-bold">@Model.Count(p => !p.IsInStock)</p>
                 </div>
             </div>
         </div>
@@ -59,6 +59,7 @@
                             <th>Tên Sản Phẩm</th>
                             <th>Giá</th>
                             <th>Danh Mục</th>
+                            <th>Trạng Thái</th>
                             <th>Mô Tả</th>
                             <th>Thao Tác</th>
                         </tr>
@@ -81,6 +82,17 @@
                                 <td>@item.Name</td>
                                 <td>@item.Price.ToString("N0") đ</td>
                                 <td>@item.Category?.Name</td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input stock-status" type="checkbox" 
+                                               data-id="@item.Id" 
+                                               @(item.IsInStock ? "checked" : "")
+                                               onchange="updateStockStatus(this)">
+                                        <label class="form-check-label">
+                                            @(item.IsInStock ? "Còn hàng" : "Hết hàng")
+                                        </label>
+                                    </div>
+                                </td>
                                 <td>@(item.Description?.Length > 50 ? item.Description.Substring(0, 47) + "..." : item.Description)</td>
                                 <td>
                                     <div class="btn-group" role="group">
@@ -149,15 +161,41 @@
                 order: [[0, 'desc']],
                 columnDefs: [
                     {
-                        targets: 1,
-                        orderable: false
-                    },
-                    {
-                        targets: 6,
+                        targets: [1, 5, 7],
                         orderable: false
                     }
                 ]
             });
         });
+
+        function updateStockStatus(element) {
+            const productId = $(element).data('id');
+            const isInStock = element.checked;
+            
+            $.ajax({
+                url: '/Admin/Product/UpdateStockStatus',
+                type: 'POST',
+                data: { id: productId, isInStock: isInStock },
+                success: function(response) {
+                    if (response.success) {
+                        // Cập nhật label
+                        $(element).siblings('label').text(isInStock ? 'Còn hàng' : 'Hết hàng');
+                        
+                        // Hiển thị thông báo
+                        toastr.success('Đã cập nhật trạng thái hàng');
+                        
+                        // Cập nhật số lượng sản phẩm hết hàng trong thống kê
+                        location.reload();
+                    } else {
+                        toastr.error('Có lỗi xảy ra khi cập nhật trạng thái');
+                        element.checked = !isInStock;
+                    }
+                },
+                error: function() {
+                    toastr.error('Có lỗi xảy ra khi cập nhật trạng thái');
+                    element.checked = !isInStock;
+                }
+            });
+        }
     </script>
 }

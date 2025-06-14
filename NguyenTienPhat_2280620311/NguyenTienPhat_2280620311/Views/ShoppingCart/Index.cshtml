@@ -1,6 +1,12 @@
 ﻿@model ShoppingCart
 
 <div class="container mt-4">
+    @if (TempData["OutOfStockError"] != null)
+    {
+        <div class="alert alert-danger mb-4" style="white-space: pre-line">
+            @TempData["OutOfStockError"]
+        </div>
+    }
     <div class="row">
         <!-- Shopping Cart Section -->
         <div class="col-md-8">
@@ -20,6 +26,10 @@
                             <div class="col-md-4">
                                 <h5 class="product-name">@item.Name</h5>
                                 <p class="text-muted mb-0">@item.Price.ToString("#,##0") ₫</p>
+                                @if (!item.IsInStock)
+                                {
+                                    <span class="badge bg-danger mt-1">Hết hàng</span>
+                                }
                             </div>
                             <div class="col-md-3">
                                 <div class="quantity-control d-flex align-items-center justify-content-center">

@@ -1,0 +1,33 @@
+@model NguyenTienPhat_2280620311.Models.Order
+@using NguyenTienPhat_2280620311.Models;
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning text-dark">
+            <h3 class="mb-0">Chỉnh sửa trạng thái đơn hàng</h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="EditStatus" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="mb-3">
+                    <label class="form-label">Mã đơn hàng</label>
+                    <input class="form-control" value="@Model.Id" disabled />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Người đặt</label>
+                    <input class="form-control" value="@Model.ApplicationUser?.FullName" disabled />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="@OrderStatus.ChoXuLy">Chờ xử lí</option>
+                        <option value="@OrderStatus.DangXuLy">Đang xử lí</option>
+                        <option value="@OrderStatus.HoanThanh">Hoàn thành</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Quay lại</a>
+            </form>
+        </div>
+    </div>
+</div> 

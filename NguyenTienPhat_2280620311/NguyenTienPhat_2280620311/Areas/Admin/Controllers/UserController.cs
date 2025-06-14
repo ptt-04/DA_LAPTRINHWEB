@@ -32,6 +32,8 @@ namespace NguyenTienPhat_2280620311.Areas.Admin.Controllers
                     user.Id,
                     user.UserName,
                     user.Email,
+                    user.FullName,
+                    user.PhoneNumber,
                     Role = string.Join(", ", roles),
                     Status = user.LockoutEnd != null && user.LockoutEnd > DateTime.Now ? "Locked" : "Active"
                 });
@@ -50,12 +52,13 @@ namespace NguyenTienPhat_2280620311.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(string id, string userName, string email)
+        public async Task<IActionResult> Edit(string id, string userName, string email, string phoneNumber)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
             user.UserName = userName;
             user.Email = email;
+            user.PhoneNumber = phoneNumber;
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {

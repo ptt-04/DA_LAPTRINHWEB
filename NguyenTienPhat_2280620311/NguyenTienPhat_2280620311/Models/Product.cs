@@ -33,5 +33,8 @@ namespace NguyenTienPhat_2280620311.Models
 
         // Navigation property for Reviews
         public List<Review>? Reviews { get; set; }
+
+        [Display(Name = "Còn hàng")]
+        public bool IsInStock { get; set; } = true; // Mặc định là còn hàng
     }
 }

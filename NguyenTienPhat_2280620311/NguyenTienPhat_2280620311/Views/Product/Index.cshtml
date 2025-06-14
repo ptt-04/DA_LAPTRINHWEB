@@ -6,6 +6,20 @@
 }
 
 <div class="container mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
     <div class="row">
         <!-- Sidebar -->
         <div class="col-lg-3">
@@ -93,17 +107,33 @@
                                 <div class="position-relative">
                                     @if (!string.IsNullOrEmpty(item.ImageUrl))
                                     {
-                                        <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name">
+                                        <img src="@item.ImageUrl" class="card-img-top @(!item.IsInStock ? "out-of-stock" : "")" alt="@item.Name">
                                     }
                                     else
                                     {
-                                        <img src="/images/default-product.png" class="card-img-top" alt="No Image">
+                                        <img src="/images/default-product.png" class="card-img-top @(!item.IsInStock ? "out-of-stock" : "")" alt="No Image">
                                     }
+                                    @if (!item.IsInStock)
+                                    {
+                                        <div class="out-of-stock-overlay">
+                                            <span class="out-of-stock-text">Hết hàng</span>
+                                        </div>
+                                        <div class="product-overlay">
+                                            <div class="d-flex gap-2">
+                                                <a asp-action="Details" asp-route-id="@item.Id" 
+                                                   class="btn btn-light btn-sm">
+                                                    <i class="fas fa-info-circle"></i> Chi tiết
+                                                </a>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
                                     <div class="product-overlay">
                                         <div class="d-flex gap-2">
                                             <a asp-action="Details" asp-route-id="@item.Id" 
                                                class="btn btn-light btn-sm">
-                                                <i class="fas fa-info-circle"></i>
+                                                    <i class="fas fa-info-circle"></i> Chi tiết
                                             </a>
                                             <a asp-controller="ShoppingCart" asp-action="AddToCart"
                                                asp-route-productId="@item.Id"
@@ -113,6 +143,7 @@
                                             </a>
                                         </div>
                                     </div>
+                                    }
                                 </div>
                                 <div class="card-body">
                                     <h5 class="product-title text-truncate">@item.Name</h5>
@@ -242,6 +273,31 @@
         }
         .search-result strong {
             color: var(--primary-color);
+        }
+        .out-of-stock {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        .out-of-stock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .out-of-stock-text {
+            background: rgba(255,0,0,0.8);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
     </style>
 } 

@@ -62,6 +62,14 @@
                 <div class="card-body" style="color: #222;">
                     <form id="checkoutForm" method="post">
                         <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
+                            <input asp-for="PhoneNumber" class="form-control" required 
+                                   value="@(User.Identity.IsAuthenticated ? ((NguyenTienPhat_2280620311.Models.ApplicationUser)ViewBag.CurrentUser)?.PhoneNumber : "")"
+                                   placeholder="Nhập số điện thoại của bạn" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
                             <label asp-for="ShippingAddress" class="form-label">Địa chỉ giao hàng</label>
                             <input asp-for="ShippingAddress" class="form-control" required />
                         </div>

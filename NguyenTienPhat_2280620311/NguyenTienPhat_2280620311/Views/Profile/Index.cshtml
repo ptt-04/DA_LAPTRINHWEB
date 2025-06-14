@@ -23,6 +23,8 @@
                         <dd class="col-sm-8">@Model.FullName</dd>
                         <dt class="col-sm-4">Email</dt>
                         <dd class="col-sm-8">@Model.Email</dd>
+                        <dt class="col-sm-4">Số điện thoại</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Chưa cập nhật" : Model.PhoneNumber)</dd>
                         <dt class="col-sm-4">Địa chỉ</dt>
                         <dd class="col-sm-8">@Model.Address</dd>
                         <dt class="col-sm-4">Tuổi</dt>

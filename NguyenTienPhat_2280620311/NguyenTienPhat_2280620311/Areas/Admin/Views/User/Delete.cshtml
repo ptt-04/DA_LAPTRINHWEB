@@ -18,6 +18,7 @@
                 <ul>
                     <li><b>User Name:</b> @Model.UserName</li>
                     <li><b>Email:</b> @Model.Email</li>
+                    <li><b>Số điện thoại:</b> @(string.IsNullOrEmpty(Model.PhoneNumber) ? "Chưa cập nhật" : Model.PhoneNumber)</li>
                     <li><b>Role:</b> @ViewBag.Role</li>
                 </ul>
                 <form asp-action="Delete" method="post">

@@ -79,7 +79,8 @@ namespace NguyenTienPhat_2280620311.Controllers
                 id = p.Id,
                 name = p.Name,
                 image = p.ImageUrl,
-                price = p.Price
+                price = p.Price,
+                isInStock = p.IsInStock
             });
             return Json(result);
         }

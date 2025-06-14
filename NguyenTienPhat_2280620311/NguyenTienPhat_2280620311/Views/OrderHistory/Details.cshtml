@@ -2,7 +2,7 @@
 
 <div class="container mt-4">
     <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header bg-shopee text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0">Chi tiết đơn hàng #@Model.Id</h3>
             <a asp-action="Index" class="btn btn-outline-light">
                 <i class="fas fa-arrow-left me-2"></i>Quay lại
@@ -11,20 +11,20 @@
         <div class="card-body">
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <h5 class="text-muted mb-3">Thông tin đơn hàng</h5>
+                    <h5 class="text-shopee mb-3">Thông tin đơn hàng</h5>
                     <p><strong>Mã đơn hàng:</strong> #@Model.Id</p>
                     <p><strong>Người đặt:</strong> @Model.ApplicationUser.FullName</p>
                     <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("#,##0") ₫</p>
+                    <p><strong>Tổng tiền:</strong> <span class="text-shopee">@Model.TotalPrice.ToString("#,##0") ₫</span></p>
                 </div>
                 <div class="col-md-6">
-                    <h5 class="text-muted mb-3">Thông tin giao hàng</h5>
+                    <h5 class="text-shopee mb-3">Thông tin giao hàng</h5>
                     <p><strong>Địa chỉ:</strong> @Model.ShippingAddress</p>
                     <p><strong>Ghi chú:</strong> @(string.IsNullOrEmpty(Model.Notes) ? "Không có" : Model.Notes)</p>
                 </div>
             </div>
 
-            <h5 class="text-muted mb-3">Chi tiết sản phẩm</h5>
+            <h5 class="text-shopee mb-3">Chi tiết sản phẩm</h5>
             <div class="table-responsive">
                 <table class="table">
                     <thead>
@@ -58,9 +58,9 @@
                         }
                     </tbody>
                     <tfoot>
-                        <tr>
+                        <tr class="table-total">
                             <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
-                            <td class="text-end"><strong>@Model.TotalPrice.ToString("#,##0") ₫</strong></td>
+                            <td class="text-end"><strong class="text-shopee">@Model.TotalPrice.ToString("#,##0") ₫</strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -71,14 +71,31 @@
 
 @section Styles {
     <style>
+        :root {
+            --shopee-color: #ee4d2d;
+        }
+        .bg-shopee {
+            background-color: var(--shopee-color) !important;
+        }
+        .text-shopee {
+            color: var(--shopee-color) !important;
+        }
         .table th {
             background-color: #f8f9fa;
+            border-bottom: 2px solid var(--shopee-color);
         }
         .table td {
             vertical-align: middle;
         }
         .img-thumbnail {
             border-radius: 4px;
+            border-color: #efefef;
+        }
+        .table-total {
+            border-top: 2px solid var(--shopee-color);
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255,255,255,0.1);
         }
     </style>
 } 
